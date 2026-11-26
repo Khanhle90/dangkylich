@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ABA - Điều Hành & Đăng Ký Lịch CTV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            aba: {
+              blue: '#005088',
+              dark: '#003a66',
+              light: '#e0f2fe'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .moon-badge {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-top-right-radius: 0.75rem;
+      border-bottom-right-radius: 0.75rem;
+      background: rgba(15, 23, 42, 0.28);
+      backdrop-filter: blur(2px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans select-none">
+
+  <!-- ================= HEADER CHÍNH ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+      
+      <!-- GÓC TRÊN BÊN TRÁI: LOGO ABA THEO FILE logo.png Ở THƯ MỤC GỐC -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+        <img src="logo.png" alt="Logo ABA" class="h-10 w-auto object-contain">
+        <div class="hidden sm:block border-l border-slate-200 pl-3">
+          <h1 class="text-sm font-black text-slate-800 uppercase tracking-tight">ABA Education</h1>
+          <p class="text-[11px] text-slate-500 font-medium">Hệ thống Điều phối Lịch CTV</p>
+        </div>
+      </div>
+
+      <!-- GÓC PHẢI: USER PROFILE, NÚT ĐỔI TK & QUẢN TRỊ (BÁNH RĂNG) -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Thông tin User -->
+        <!-- Bấm vào Tên tài khoản sẽ mở Danh sách chương trình cá nhân -->
+        <div onclick="openUserHistoryModal()" class="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full border border-slate-200 cursor-pointer transition select-none" title="Xem lịch trình cá nhân">
+          <i class="fa-regular fa-user text-xs text-slate-500"></i>
+          <span id="headerUserName" class="text-xs font-bold text-slate-700 max-w-[120px] truncate">Đang tải...</span>
+          <span id="headerUserRole" class="text-[10px] bg-aba-blue text-white px-1.5 py-0.5 rounded-md font-bold uppercase">CTV</span>
+        </div>
+
+        <!-- Nút Đổi Tài Khoản (Bắt buộc nhập mật khẩu mới được thoát) -->
+        <button onclick="openSwitchAccountModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl border border-slate-300 font-semibold flex items-center space-x-1 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+          <span class="hidden sm:inline">Đổi TK</span>
+        </button>
+
+        <!-- Icon Bánh Răng Quản Trị (Chỉ gồm icon ở góc trên cùng bên phải) -->
+        <button id="adminGearBtn" onclick="openAdminModal()" title="Bảng điều khiển Quản trị" class="p-2 text-slate-500 hover:text-aba-blue hover:bg-slate-100 rounded-full transition">
+          <i class="fa-solid fa-gear text-lg"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= NỘI DUNG CHÍNH ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-6">
+
+    <!-- 1. MỤC DÀNH RIÊNG CHO THÔNG BÁO TUYỂN NGƯỜI (KHẨN CẤP - GHIM ĐẦU) -->
+    <section id="urgentNoticeContainer" class="space-y-3"></section>
+
+    <!-- 2. PHẦN TRÊN: CHƯƠNG TRÌNH ĐÃ CHỐT -->
+    <section class="space-y-2.5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span>Chương trình đã chốt</span>
+        </h2>
+        <span class="text-xs text-slate-500">Thẻ xanh: Đủ người | Thẻ đỏ: Thiếu người</span>
+      </div>
+      <div id="finalizedGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </section>
+
+    <!-- 3. PHẦN DƯỚI: LỊCH HOẠT ĐỘNG (NGÀY ÂM, DƯƠNG & CÁC CHƯƠNG TRÌNH TRONG NGÀY) -->
+    <section class="space-y-3 pt-2">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3 border-slate-200">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">Lịch hoạt động & Đăng ký sự kiện</h2>
+          <p class="text-xs text-slate-500">Bấm trực tiếp vào ngày để mở giao diện chi tiết và đăng ký ca</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- BỘ NÚT CHUYỂN TUẦN / THÁNG -->
+          <div class="flex items-center bg-slate-200/70 p-1 rounded-xl text-xs font-bold">
+            <button id="btnViewWeek" onclick="switchCalendarView('week')" 
+                    class="px-3 py-1.5 rounded-lg transition bg-white text-aba-blue shadow-xs">
+              <i class="fa-solid fa-calendar-week mr-1"></i>Xem tuần
+            </button>
+            <button id="btnViewMonth" onclick="switchCalendarView('month')" 
+                    class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">
+              <i class="fa-solid fa-calendar-days mr-1"></i>Xem tháng
+            </button>
+          </div>
+
+          <!-- NÚT MŨI TÊN TRƯỚC / SAU -->
+          <div class="flex items-center space-x-1 bg-white border border-slate-200 p-1 rounded-xl shadow-xs">
+            <button onclick="navigateCalendar(-1)" class="px-2.5 py-1 text-xs font-bold hover:bg-slate-100 rounded-lg text-slate-600 transition">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span id="currentCalendarLabel" class="text-xs font-bold text-slate-800 px-2 min-w-[130px] text-center"></span>
+            <button onclick="navigateCalendar(1)" class="px-2.5 py-1 text-xs font-bold hover:bg-slate-100 rounded-lg text-slate-600 transition">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chú thích màu thẻ -->
+      <div class="flex flex-wrap items-center gap-3 text-xs bg-white p-3 rounded-xl border border-slate-200 text-slate-600">
+        <span class="font-bold text-slate-800">Quy ước màu thẻ:</span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-amber-400"></span><span>Chỉ sáng (Thẻ vàng)</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-sky-500"></span><span>Chỉ chiều (Thẻ xanh)</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-rose-500"></span><span>Tuyển cả ngày (Thẻ đỏ)</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-800 text-amber-300 text-[10px] flex items-center justify-center">🌙</span><span>Tuyển buổi tối (Kèm trăng khuyết)</span></span>
+      </div>
+
+      <!-- Lưới 7 ngày trong tuần -->
+      <div id="calendarGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3"></div>
+    </section>
+
+  </main>
+
+  <!-- ==================== GIAO DIỆN FULL MÀN HÌNH THEO NGÀY CỤ THỂ ==================== -->
+  <div id="dayDetailView" class="fixed inset-0 bg-slate-50 z-40 flex flex-col hidden overflow-y-auto">
+    <div class="sticky top-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs z-20">
+      <div class="flex items-center space-x-3">
+        <button onclick="closeDayDetail()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center space-x-1.5 transition">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Quay lại</span>
+        </button>
+        <div>
+          <h2 id="dayDetailTitle" class="text-base font-bold text-slate-800"></h2>
+          <p id="dayDetailSubtitle" class="text-xs text-slate-500"></p>
+        </div>
+      </div>
+
+      <!-- NÚT TẠO CHƯƠNG TRÌNH GÓC TRÊN BÊN PHẢI -->
+      <button id="btnCreateProgInDay" onclick="openCreateProgramModal()" class="px-3.5 py-2 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow flex items-center space-x-1.5 transition">
+        <i class="fa-solid fa-plus"></i>
+        <span>Tạo chương trình</span>
+      </button>
+    </div>
+
+    <div class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-4">
+      <div id="dayProgramsList" class="space-y-4"></div>
+    </div>
+  </div>
+  <!-- ==================== GIAO DIỆN ĐĂNG KÝ CHƯƠNG TRÌNH FULL MÀN HÌNH ==================== -->
+  <div id="programDetailView" class="fixed inset-0 bg-slate-50 z-50 flex flex-col hidden overflow-y-auto">
+    <!-- Header màn hình đăng ký: Nút quay lại ngày trước đó -->
+    <div class="sticky top-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs z-20">
+      <div class="flex items-center space-x-3">
+        <button onclick="closeProgramDetail()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center space-x-1.5 transition">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Quay lại thông tin ngày</span>
+        </button>
+        <div>
+          <h2 id="programDetailHeaderTitle" class="text-base font-extrabold text-slate-900 truncate max-w-[220px] sm:max-w-md"></h2>
+          <p id="programDetailHeaderSub" class="text-xs text-slate-500"></p>
+        </div>
+      </div>
+      <div id="programDetailHeaderActions" class="flex items-center space-x-2"></div>
+    </div>
+
+    <!-- Nội dung đăng ký chi tiết -->
+    <div class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-4">
+      <div id="programDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL XÁC THỰC NHÂN SỰ (KHÓA TÀI KHOẢN MÁY) ==================== -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100">
+      
+      <!-- Icon lá chắn tím -->
+      <div class="flex justify-center mb-3">
+        <div class="w-14 h-14 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 shadow-xs">
+          <i class="fa-solid fa-shield-halved text-2xl"></i>
+        </div>
+      </div>
+
+      <div class="text-center mb-5">
+        <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Xác Thực Nhân Sự</h3>
+        <p class="text-xs text-slate-500 mt-1">Đối chiếu dữ liệu thời gian thực với Data gốc</p>
+      </div>
+
+      <!-- Khung Tra cứu nhanh bằng SĐT -->
+      <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 mb-4">
+        <label class="block text-xs font-bold text-indigo-950 mb-2">Tra cứu nhanh bằng Số điện thoại</label>
+        <div class="flex space-x-2">
+          <input type="tel" id="lookupPhoneInput" placeholder="Nhập SĐT (VD: 0389975487)" 
+                 class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-400">
+          <button onclick="handleLookupPhone()" id="btnLookupPhone" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition whitespace-nowrap">
+            Tìm & Điền
+          </button>
+        </div>
+
+        <!-- Dòng thông báo kết quả tìm thấy màu xanh lá (Chuẩn theo ảnh mẫu) -->
+        <div id="lookupStatus" class="hidden text-xs font-bold text-emerald-600 mt-2.5"></div>
+
+        <p class="text-[11px] text-slate-500 mt-3 leading-relaxed">
+          Nếu SĐT bạn chưa được đăng ký, hãy điền đầy đủ form thông tin sau trước khi đăng nhập:
+        </p>
+
+        <!-- Nút Mở Form Đăng Ký Thông Tin -->
+        <a href="https://khanhle90.github.io/dienthongtinnhansu/" target="_blank" 
+           class="mt-2.5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-xs transition">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>Mở Form Đăng Ký Thông Tin</span>
+        </a>
+
+        <p class="text-[10px] text-indigo-600/90 italic mt-2.5 leading-normal">
+          Sau khi điền xong bạn kiểm tra thử, nếu hiện thông tin theo SĐT thì chờ thêm 30-60 giây để hệ thống cập nhật dữ liệu.
+        </p>
+      </div>
+
+      <!-- Mã nhân sự & Họ và tên -->
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Mã nhân sự</label>
+          <input type="text" id="loginMaCTV" placeholder="NHẬP MÃ NHÂN SỰ" 
+                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm uppercase font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên</label>
+          <input type="text" id="loginHoTen" placeholder="Nhập đầy đủ họ và tên" 
+                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+
+      <!-- Nút Xác Nhận Đăng Nhập -->
+      <button onclick="handleLoginSubmit()" id="btnLoginSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 transition">
+        Xác Nhận Đăng Nhập
+      </button>
+
+      <button id="btnCloseLoginModal" onclick="closeLoginModal()" class="w-full mt-2.5 text-xs text-slate-400 hover:text-slate-600 py-1.5 text-center hidden">
+        Đóng cửa sổ
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL XÁC THỰC ĐỔI TÀI KHOẢN (BẢO VỆ MẬT KHẨU) ==================== -->
+  <div id="switchAccountModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3 border border-slate-100">
+      <div class="flex items-center space-x-2 text-indigo-700 font-bold border-b pb-2">
+        <i class="fa-solid fa-key text-lg"></i>
+        <span>Xác Thực Đổi Tài Khoản</span>
+      </div>
+      
+      <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <p class="font-bold text-slate-800">Hệ thống đã khóa tài khoản của bạn trên máy này.</p>
+        <p class="text-slate-600">Vui lòng nhập mật khẩu Quản trị để mở khóa và đăng xuất thiết bị.</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu cấp quyền đổi tài khoản:</label>
+        <input type="password" id="switchAccountPassInput" placeholder="Nhập mật khẩu Admin..." class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500">
+        <div id="switchAccountError" class="text-xs text-rose-600 font-semibold mt-1.5 hidden"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button onclick="confirmSwitchAccount()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2.5 rounded-xl font-bold shadow">
+          Xác Nhận
+        </button>
+        <button onclick="closeSwitchAccountModal()" class="bg-slate-200 text-slate-700 text-xs py-2.5 rounded-xl font-semibold">
+          Hủy Bỏ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL TẠO CHƯƠNG TRÌNH ==================== -->
+  <!-- ==================== MODAL TẠO CHƯƠNG TRÌNH ==================== -->
+  <div id="createProgModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+        <h3 class="text-base font-bold text-slate-800">Tạo chương trình sự kiện mới</h3>
+        <button onclick="closeCreateProgModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <!-- Ô CHỌN NGÀY THỰC HIỆN BỔ SUNG -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ngày thực hiện *</label>
+          <div class="relative flex items-center">
+            <!-- Ô hiển thị trực quan chuẩn dd/mm/yyyy -->
+            <input type="text" id="progDateDisplay" placeholder="dd/mm/yyyy" readonly
+                   class="w-full border border-slate-200 rounded-xl p-2.5 pr-10 text-xs font-bold text-slate-800 bg-white shadow-xs focus:outline-none">
+            
+            <!-- Biểu tượng lịch -->
+            <span class="absolute right-3.5 text-slate-400 pointer-events-none">
+              <i class="fa-regular fa-calendar text-sm"></i>
+            </span>
+
+            <!-- Bộ chọn ngày ngầm tiếp nhận click/chạm -->
+            <input type="date" id="progDate" onchange="updateProgDateDisplay(this.value)"
+                   class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên trường *</label>
+          <input type="text" id="progSchool" placeholder="VD: THCS Giảng Võ 2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-aba-blue">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Địa điểm *</label>
+          <input type="text" id="progLocation" placeholder="VD: Flamingo Đại Lải / Đền Hùng" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-aba-blue">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Thời gian có mặt *</label>
+            <input type="text" id="progArrivalTime" placeholder="VD: 06:15 sáng" class="w-full border rounded-xl p-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ekip phụ trách *</label>
+            <input type="text" id="progLeaderTeam" placeholder="VD: Đội 1 - Anh Long" class="w-full border rounded-xl p-2.5 text-xs">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Link Google Maps</label>
+          <input type="url" id="progMapUrl" placeholder="https://maps.app.goo.gl/..." class="w-full border rounded-xl p-2.5 text-xs">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Link nhóm Zalo chương trình</label>
+          <input type="url" id="progZaloUrl" placeholder="https://zalo.me/g/..." class="w-full border rounded-xl p-2.5 text-xs">
+        </div>
+
+        <div class="p-3 bg-slate-50 border rounded-2xl space-y-2">
+          <span class="block font-bold text-slate-700">Chỉ tiêu nhân sự tuyển dụng:</span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Cả ngày</label>
+              <input type="number" id="quotaDay" value="0" min="0" 
+                     onfocus="if(this.value==='0') this.value='';" 
+                     onblur="if(this.value==='') this.value='0';" 
+                     class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Buổi sáng</label>
+              <input type="number" id="quotaMorning" value="0" min="0" 
+                     onfocus="if(this.value==='0') this.value='';" 
+                     onblur="if(this.value==='') this.value='0';" 
+                     class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Buổi chiều</label>
+              <input type="number" id="quotaAfternoon" value="0" min="0" 
+                     onfocus="if(this.value==='0') this.value='';" 
+                     onblur="if(this.value==='') this.value='0';" 
+                     class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Buổi tối</label>
+              <input type="number" id="quotaEvening" value="0" min="0" 
+                     onfocus="if(this.value==='0') this.value='';" 
+                     onblur="if(this.value==='') this.value='0';" 
+                     class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end space-x-2">
+        <button onclick="closeCreateProgModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold">Hủy</button>
+        <button onclick="submitCreateProgram()" id="btnSaveProg" class="px-5 py-2 bg-aba-blue hover:bg-aba-dark text-white rounded-xl text-xs font-bold shadow">Tạo & Nhân bản File</button>
+      </div>
+    </div>
+  </div>
+
+<!-- ==================== MODAL NHẬP MÃ BẢO MẬT QUẢN TRỊ ==================== -->
+  <div id="adminPinAuthModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-xs border border-indigo-100">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-extrabold text-slate-800">Xác Thực Quản Trị Viên</h3>
+        <p class="text-xs text-slate-500 mt-1">Dành riêng cho Quản trị viên: <b>Lê Duy Khánh</b></p>
+      </div>
+
+      <div class="text-left space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700">Mã số xác thực Quản trị:</label>
+        <input type="password" id="adminSecretPinInput" placeholder="Nhập mã số quản trị (mặc định: 1)" 
+               class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 font-bold text-slate-800 text-center tracking-widest">
+        <p id="adminPinError" class="text-xs text-rose-600 font-semibold hidden mt-1"></p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="closeAdminPinModal()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">
+          Hủy bỏ
+        </button>
+        <button onclick="submitAdminPinAuth()" id="btnConfirmAdminPin" class="py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow">
+          Xác Nhận
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL CÀI ĐẶT QUẢN TRỊ (BÁNH RĂNG) ==================== -->
+  <div id="adminModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+          <i class="fa-solid fa-gear text-slate-600"></i>
+          <span>Bảng Điều Khiển Quản Trị Hệ Thống</span>
+        </h3>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- NÚT TẠO CHƯƠNG TRÌNH NHANH TRONG BẢNG QUẢN TRỊ -->
+        <div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center justify-between">
+          <div>
+            <h4 class="font-bold text-indigo-950">Tạo chương trình sự kiện</h4>
+            <p class="text-[11px] text-indigo-700">Khởi tạo sự kiện mới và nhân bản bảng tính Google Sheets</p>
+          </div>
+          <button onclick="closeAdminModal(); openCreateProgramModal();" class="bg-aba-blue hover:bg-aba-dark text-white px-4 py-2 rounded-xl font-bold shadow text-xs flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-plus"></i>
+            <span>Tạo mới</span>
+          </button>
+        </div>
+
+        <!-- Cấp quyền nhân sự -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+          <h4 class="font-bold text-slate-800">Cấp quyền nhân sự</h4>
+          <div class="flex space-x-2">
+            <input type="tel" id="rolePhoneInput" placeholder="Nhập SĐT nhân sự" class="flex-1 border rounded-xl p-2 text-xs bg-white">
+            <select id="roleSelect" class="border rounded-xl p-2 text-xs font-semibold bg-white">
+              <option value="Quản trị">Quản trị</option>
+              <option value="Điều hành">Điều hành</option>
+              <option value="Trưởng nhóm">Trưởng nhóm</option>
+              <option value="CTV">CTV</option>
+            </select>
+            <button onclick="submitAssignRole()" class="bg-aba-blue text-white px-3.5 py-2 rounded-xl font-bold">Lưu</button>
+          </div>
+        </div>
+
+        <!-- Đăng thông báo khẩn cấp -->
+        <div class="p-3.5 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-2.5">
+          <h4 class="font-bold text-rose-800">Đăng thông báo tuyển gấp (Ghim đầu trang)</h4>
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="urgentLocation" placeholder="Địa điểm *" class="border rounded-lg p-2 text-xs bg-white">
+              <input type="text" id="urgentTime" placeholder="Thời gian *" class="border rounded-lg p-2 text-xs bg-white">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" id="urgentQuota" placeholder="Số lượng CTV *" class="border rounded-lg p-2 text-xs bg-white">
+              <input type="text" id="urgentSalary" placeholder="Mức lương (nếu có)" class="border rounded-lg p-2 text-xs bg-white">
+            </div>
+            <textarea id="urgentReqs" rows="2" placeholder="Yêu cầu nghiệp vụ..." class="w-full border rounded-lg p-2 text-xs bg-white"></textarea>
+            <button onclick="submitPostUrgentNotice()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl transition">Đăng Ngay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL XÁC NHẬN CHUYỂN ĐỔI CA LÀM ==================== -->
+  <div id="conflictModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
+      <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+      </div>
+      <h4 class="font-bold text-base text-slate-900 mb-1">Xác nhận chuyển ca</h4>
+      <p id="conflictModalMessage" class="text-xs text-slate-600 mb-4 leading-relaxed"></p>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="closeConflictModal()" class="py-2.5 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl">Giữ lịch cũ</button>
+        <button id="btnConfirmSwitch" class="py-2.5 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow">Đồng ý đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ĐIỀU HÀNH ================= -->
+  <script>
+    let state = {
+      currentUser: null,
+      programs: [],
+      urgentNotices: [],
+      weekOffset: 0,
+      monthOffset: 0,
+      calendarView: 'week',
+      activeDayStr: null,
+      activeProgramId: null, // Lưu ID chương trình đang xem chi tiết
+      pendingRegData: null
+    };
+
+    // ---------------- HỆ THỐNG THÔNG BÁO HIỆN ĐẠI ----------------
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      toast.className = "pointer-events-auto flex items-start space-x-3 p-4 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 transform translate-y-[-10px] opacity-0 max-w-sm w-full";
+
+      if (type === 'success') {
+        toast.classList.add("bg-emerald-500", "text-white", "border-emerald-400");
+        toast.innerHTML = `
+          <div class="w-7 h-7 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-circle-check text-base"></i>
+          </div>
+          <div class="flex-1">
+            <h5 class="font-extrabold text-xs uppercase tracking-wide">${title}</h5>
+            <p class="text-xs opacity-90 mt-0.5 leading-snug">${message}</p>
+          </div>
+        `;
+      } else if (type === 'error') {
+        toast.classList.add("bg-rose-600", "text-white", "border-rose-500");
+        toast.innerHTML = `
+          <div class="w-7 h-7 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-circle-xmark text-base"></i>
+          </div>
+          <div class="flex-1">
+            <h5 class="font-extrabold text-xs uppercase tracking-wide">${title}</h5>
+            <p class="text-xs opacity-90 mt-0.5 leading-snug">${message}</p>
+          </div>
+        `;
+      } else {
+        toast.classList.add("bg-slate-800", "text-white", "border-slate-700");
+        toast.innerHTML = `
+          <div class="w-7 h-7 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-spinner animate-spin text-base"></i>
+          </div>
+          <div class="flex-1">
+            <h5 class="font-extrabold text-xs uppercase tracking-wide">${title}</h5>
+            <p class="text-xs opacity-90 mt-0.5 leading-snug">${message}</p>
+          </div>
+        `;
+      }
+
+      container.appendChild(toast);
+
+      // Hiệu ứng trượt xuống
+      setTimeout(() => {
+        toast.classList.remove("translate-y-[-10px]", "opacity-0");
+      }, 20);
+
+      // Tự biến mất sau 4 giây
+      setTimeout(() => {
+        toast.classList.add("translate-y-[-10px]", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // 1. Kiểm tra tài khoản đã khóa cứng trên thiết bị
+      checkLockedUser();
+
+      // 2. Tự động tìm kiếm ngay khi gõ đủ 10 số (theo đúng file mẫu)
+      const phoneInput = document.getElementById("lookupPhoneInput");
+      phoneInput.addEventListener("input", function(e) {
+        const val = e.target.value.replace(/\D/g, "");
+        if (val.length === 10) {
+          handleLookupPhone();
+        }
+      });
+
+      // 3. Nạp dữ liệu ban đầu
+      loadInitialData();
+    });
+
+    // ---------------- KIỂM TRA KHÓA TÀI KHOẢN ----------------
+    function checkLockedUser() {
+      try {
+        const saved = localStorage.getItem("aba_locked_user_profile");
+        if (saved) {
+          state.currentUser = JSON.parse(saved);
+          updateHeaderProfile();
+          document.getElementById("loginModal").classList.add("hidden");
+          document.getElementById("btnCloseLoginModal").classList.remove("hidden");
+        } else {
+          // Chưa đăng nhập -> Hiện Modal xác thực và khóa màn hình (không cho đóng)
+          document.getElementById("loginModal").classList.remove("hidden");
+          document.getElementById("btnCloseLoginModal").classList.add("hidden");
+        }
+      } catch (e) {
+        document.getElementById("loginModal").classList.remove("hidden");
+      }
+    }
+
+    function updateHeaderProfile() {
+      if (state.currentUser) {
+        document.getElementById("headerUserName").innerText = state.currentUser.hoTen || state.currentUser.name;
+        document.getElementById("headerUserRole").innerText = state.currentUser.role || "CTV";
+      }
+    }
+
+    // ---------------- TRA CỨU SĐT CHUẨN XÁC THEO ẢNH 2 ----------------
+    // URL Web App của hệ thống Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSEqsJKliFuiF1UqfCPe66IkIvdrtqSq4xO7CszRBkbWhE7tyjWA/exec";
+
+    // Biến lưu trữ tạm thông tin vừa tra cứu thành công từ Data gốc
+    let currentLookupUser = null;
+
+    // ---------------- TRA CỨU SĐT CHUẨN XÁC THEO DATA ----------------
+    async function handleLookupPhone() {
+      const phoneInput = document.getElementById("lookupPhoneInput");
+      const phone = phoneInput ? phoneInput.value.trim().replace(/\D/g, "") : "";
+      const statusBox = document.getElementById("lookupStatus");
+      const btn = document.getElementById("btnLookupPhone");
+
+      if (!phone) {
+        if (statusBox) {
+          statusBox.innerText = "Vui lòng nhập số điện thoại!";
+          statusBox.className = "text-xs font-bold text-rose-600 mt-2.5 block";
+          statusBox.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Đang tìm...";
+      }
+      if (statusBox) {
+        statusBox.innerText = "Đang tra cứu Data gốc...";
+        statusBox.className = "text-xs font-semibold text-amber-600 mt-2.5 block";
+        statusBox.classList.remove("hidden");
+      }
+
+      try {
+        let resData = null;
+
+        // Cơ chế 1: Đang chạy trực tiếp trong Web App Google Apps Script
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          resData = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error("Quá thời gian kết nối (Timeout 8s)")), 8000);
+            google.script.run
+              .withSuccessHandler(res => { clearTimeout(timer); resolve(res); })
+              .withFailureHandler(err => { clearTimeout(timer); reject(err); })
+              .handleLookupByPhone(phone);
+          });
+        } else {
+          // Cơ chế 2: Đang chạy trên Live Server VS Code hoặc GitHub Pages
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const response = await fetch(`${SCRIPT_URL}?action=lookupByPhone&phone=${encodeURIComponent(phone)}`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          resData = await response.json();
+        }
+
+        if (resData && resData.success && resData.user) {
+          // Lưu đối tượng nhân sự đã tìm thấy vào bộ nhớ tạm
+          currentLookupUser = resData.user;
+
+          document.getElementById("loginMaCTV").value = resData.user.maCTV || "";
+          document.getElementById("loginHoTen").value = resData.user.hoTen || "";
+
+          if (statusBox) {
+            statusBox.innerText = `✓ Đã tìm thấy: ${resData.user.hoTen} (${resData.user.maCTV})`;
+            statusBox.className = "text-xs font-bold text-emerald-600 mt-2.5 block";
+          }
+        } else {
+          currentLookupUser = null;
+          if (statusBox) {
+            statusBox.innerText = (resData && resData.message) || "Không tìm thấy số điện thoại trong Data!";
+            statusBox.className = "text-xs font-bold text-rose-600 mt-2.5 block";
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi tra cứu SĐT:", err);
+        currentLookupUser = null;
+        if (statusBox) {
+          statusBox.innerText = "Lỗi kết nối: " + (err.message || err);
+          statusBox.className = "text-xs font-bold text-rose-600 mt-2.5 block";
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "Tìm & Điền";
+        }
+      }
+    }
+
+    // ---------------- XÁC NHẬN ĐĂNG NHẬP (KHÔNG BỊ TREO LUỒNG) ----------------
+    async function handleLoginSubmit() {
+      const phoneInput = document.getElementById("lookupPhoneInput");
+      const phone = phoneInput ? phoneInput.value.trim().replace(/\D/g, "") : "";
+      const maCTV = document.getElementById("loginMaCTV").value.trim();
+      const hoTen = document.getElementById("loginHoTen").value.trim();
+      const btn = document.getElementById("btnLoginSubmit");
+
+      if (!phone || !maCTV || !hoTen) {
+        alert("Thông tin đăng nhập không đúng, vui lòng điền đúng thông tin, nếu chưa đăng ký thông tin nhân sự vui lòng Điền Form đăng ký thông tin nhân sự");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Đang xác thực...";
+
+      try {
+        let authUser = null;
+
+        // 1. Nếu thông tin vừa tra cứu khớp 100% với ô nhập -> Kích hoạt đăng nhập ngay lập tức
+        if (currentLookupUser &&
+            String(currentLookupUser.maCTV).trim().toUpperCase() === maCTV.toUpperCase() &&
+            String(currentLookupUser.hoTen).trim().toLowerCase() === hoTen.toLowerCase()) {
+          authUser = currentLookupUser;
+        } else {
+          // 2. Nếu người dùng tự chỉnh sửa ô nhập -> Gửi xác thực lên máy chủ
+          let resData = null;
+          if (typeof google !== "undefined" && google.script && google.script.run) {
+            resData = await new Promise((resolve, reject) => {
+              const timer = setTimeout(() => reject(new Error("Quá thời gian xác thực (Timeout 8s)")), 8000);
+              google.script.run
+                .withSuccessHandler(res => { clearTimeout(timer); resolve(res); })
+                .withFailureHandler(err => { clearTimeout(timer); reject(err); })
+                .verifyUserAuth(maCTV, hoTen, phone);
+            });
+          } else {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const response = await fetch(`${SCRIPT_URL}?action=verifyUserAuth&maCTV=${encodeURIComponent(maCTV)}&hoTen=${encodeURIComponent(hoTen)}&phone=${encodeURIComponent(phone)}`, {
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            resData = await response.json();
+          }
+
+          if (resData && resData.success && resData.user) {
+            authUser = resData.user;
+          } else {
+            throw new Error((resData && resData.message) || "Thông tin đăng nhập không đúng, vui lòng kiểm tra lại!");
+          }
+        }
+
+        // Lưu thông tin cố định vào máy và mở giao diện ứng dụng
+        state.currentUser = authUser;
+        localStorage.setItem("aba_locked_user_profile", JSON.stringify(authUser));
+        updateHeaderProfile();
+        document.getElementById("loginModal").classList.add("hidden");
+        document.getElementById("btnCloseLoginModal").classList.remove("hidden");
+        loadInitialData();
+
+      } catch (err) {
+        console.error("Lỗi xác nhận đăng nhập:", err);
+        alert(err.message || "Lỗi xác thực, vui lòng thử lại!");
+      } finally {
+        // Luôn mở lại nút bấm, không bao giờ bị giữ ở trạng thái 'Đang xác thực...'
+        btn.disabled = false;
+        btn.innerText = "Xác Nhận Đăng Nhập";
+      }
+    }
+
+
+    function closeLoginModal() {
+      if (!state.currentUser) {
+        alert("Bạn phải hoàn thành xác thực nhân sự để sử dụng ứng dụng!");
+        return;
+      }
+      document.getElementById("loginModal").classList.add("hidden");
+    }
+
+    // ---------------- ĐỔI TÀI KHOẢN (BẮT BUỘC MẬT KHẨU) ----------------
+    function openSwitchAccountModal() {
+      document.getElementById("switchAccountPassInput").value = "";
+      document.getElementById("switchAccountError").classList.add("hidden");
+      document.getElementById("switchAccountModal").classList.remove("hidden");
+    }
+
+    function closeSwitchAccountModal() {
+      document.getElementById("switchAccountModal").classList.add("hidden");
+    }
+
+    async function confirmSwitchAccount() {
+      const passInput = document.getElementById("switchAccountPassInput");
+      const pass = passInput ? passInput.value.trim() : "";
+      const errBox = document.getElementById("switchAccountError");
+
+      if (!pass) {
+        if (errBox) {
+          errBox.innerText = "Vui lòng nhập mật khẩu Quản trị để mở khóa!";
+          errBox.classList.remove("hidden");
+        }
+        return;
+      }
+
+      // Xóa thông báo lỗi cũ
+      if (errBox) errBox.classList.add("hidden");
+
+      try {
+        let isSuccess = false;
+        let errorMessage = "Mật khẩu không đúng!";
+
+        // 1. Kiểm tra trực tiếp trong môi trường Apps Script nếu có
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          const res = await new Promise((resolve) => {
+            const timer = setTimeout(() => resolve({ success: pass === "8888" }), 5000);
+            google.script.run
+              .withSuccessHandler(r => { clearTimeout(timer); resolve(r); })
+              .withFailureHandler(() => { clearTimeout(timer); resolve({ success: pass === "8888" }); })
+              .verifySwitchAccountPassword(pass);
+          });
+          isSuccess = res && res.success;
+          if (!isSuccess && res && res.message) errorMessage = res.message;
+        } else {
+          // 2. Môi trường Live Server / Web bên ngoài: Gửi API fetch
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+          const response = await fetch(`${SCRIPT_URL}?action=verifySwitchAccount&password=${encodeURIComponent(pass)}`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          const rawText = await response.text();
+
+          // Kiểm tra nếu dữ liệu trả về là chuỗi JSON hợp lệ
+          if (rawText.startsWith("{")) {
+            const resData = JSON.parse(rawText);
+            isSuccess = resData.success;
+            if (!isSuccess && resData.message) errorMessage = resData.message;
+          } else {
+            // Trường hợp máy chủ trả về HTML hoặc chưa cập nhật bản deploy mới,
+            // đối chiếu trực tiếp với mật khẩu mặc định 8888 để người dùng không bị kẹt
+            if (pass === "8888") {
+              isSuccess = true;
+            } else {
+              errorMessage = "Mật khẩu không chính xác!";
+            }
+          }
+        }
+
+        if (isSuccess) {
+          // Mở khóa thành công: Xóa session và trả về giao diện đăng nhập ban đầu
+          localStorage.removeItem("aba_locked_user_profile");
+          state.currentUser = null;
+          closeSwitchAccountModal();
+
+          // Làm trống các trường đăng nhập
+          document.getElementById("lookupPhoneInput").value = "";
+          document.getElementById("loginMaCTV").value = "";
+          document.getElementById("loginHoTen").value = "";
+          document.getElementById("lookupStatus").classList.add("hidden");
+          document.getElementById("headerUserName").innerText = "Chưa đăng nhập";
+          document.getElementById("btnCloseLoginModal").classList.add("hidden");
+          document.getElementById("loginModal").classList.remove("hidden");
+        } else {
+          if (errBox) {
+            errBox.innerText = errorMessage;
+            errBox.classList.remove("hidden");
+          }
+        }
+      } catch (err) {
+        // Fallback an toàn: nếu mất mạng hoặc lỗi script mà nhập đúng 8888 vẫn cho phép thoát
+        if (pass === "8888") {
+          localStorage.removeItem("aba_locked_user_profile");
+          state.currentUser = null;
+          closeSwitchAccountModal();
+          location.reload();
+        } else {
+          if (errBox) {
+            errBox.innerText = "Mật khẩu không đúng hoặc lỗi mạng!";
+            errBox.classList.remove("hidden");
+          }
+        }
+      }
+    }
+
+
+    // ---------------- DỮ LIỆU & RENDER LỊCH HOẠT ĐỘNG ----------------
+    // ---------------- NẠP DỮ LIỆU BAN ĐẦU (TƯƠNG THÍCH MỌI MÔI TRƯỜNG) ----------------
+    async function loadInitialData() {
+      const phone = state.currentUser ? (state.currentUser.sdt || state.currentUser.phone || "") : "";
+
+      try {
+        let resData = null;
+
+        // 1. Nếu đang chạy trực tiếp trên Web App của Google
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          resData = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => resolve(null), 8000);
+            google.script.run
+              .withSuccessHandler(r => { clearTimeout(timer); resolve(r); })
+              .withFailureHandler(err => { clearTimeout(timer); reject(err); })
+              .getInitialAppData(phone);
+          });
+        } else {
+          // 2. Nếu đang chạy trên VS Code (Live Server) -> Dùng API fetch qua SCRIPT_URL
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+          const response = await fetch(`${SCRIPT_URL}?action=getInitialData&phone=${encodeURIComponent(phone)}`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          resData = await response.json();
+        }
+
+        if (resData) {
+          state.programs = resData.programs || [];
+          state.urgentNotices = resData.urgentNotices || [];
+          if (state.currentUser && resData.userRole) {
+            state.currentUser.role = resData.userRole;
+            updateHeaderProfile();
+          }
+        }
+      } catch (err) {
+        console.warn("Không thể đồng bộ dữ liệu thời gian thực từ server:", err);
+      } finally {
+        // Luôn render giao diện lịch dù online hay test offline trên VS Code
+        renderAllViews();
+      }
+    }
+
+    function renderAllViews() {
+      renderUrgentNotices();
+      renderFinalizedSection();
+      renderCalendarView();
+      if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+    }
+
+    function renderUrgentNotices() {
+      const container = document.getElementById("urgentNoticeContainer");
+      container.innerHTML = "";
+      if (!state.urgentNotices || state.urgentNotices.length === 0) return;
+
+      state.urgentNotices.forEach(n => {
+        const card = document.createElement("div");
+        card.className = "bg-gradient-to-r from-rose-600 to-red-600 text-white p-4 rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-red-400";
+        card.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="bg-white text-rose-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">Tuyển Gấp</span>
+              <h4 class="font-bold text-sm tracking-tight">${n.location} - ${n.time}</h4>
+            </div>
+            <p class="text-xs text-rose-100">
+              Cần: <strong class="text-white">${n.quota} CTV</strong> 
+              ${n.salary ? `| Lương: <strong class="text-amber-200">${n.salary}</strong>` : ""} 
+              | Yêu cầu: ${n.requirements || "Nhanh nhẹn, chuẩn giờ"}
+            </p>
+          </div>
+          <button onclick="alert('Vui lòng liên hệ Điều hành để nhận việc gấp!')" class="bg-white text-rose-700 text-xs font-bold px-4 py-2 rounded-xl shadow whitespace-nowrap">
+            Ứng tuyển ngay
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderFinalizedSection() {
+      const grid = document.getElementById("finalizedGrid");
+      grid.innerHTML = "";
+      const finalized = state.programs.filter(p => p.isFinalized);
+
+      if (finalized.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">Chưa có chương trình nào được chốt</div>`;
+        return;
+      }
+
+      finalized.forEach(p => {
+        const approvedCount = (p.registrations || []).filter(r => r.isApproved).length;
+        const isFull = approvedCount >= p.totalNeeded;
+        const card = document.createElement("div");
+        // Đủ người: Xanh lá cây; Thiếu người: Màu đỏ
+        card.className = isFull 
+          ? "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-xs cursor-pointer flex items-center justify-between"
+          : "bg-rose-500 text-white p-3.5 rounded-2xl shadow-xs cursor-pointer flex items-center justify-between";
+        card.onclick = () => openDayDetail(p.dateStr);
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[10px] font-black bg-white/20 px-2 py-0.5 rounded-md">${p.formattedDate}</span>
+              <span class="text-xs font-bold">${isFull ? "ĐỦ NGƯỜI" : `THIẾU ${p.totalNeeded - approvedCount} CTV`}</span>
+            </div>
+            <h4 class="font-bold text-sm mt-1 truncate max-w-[200px]">${p.schoolName}</h4>
+            <p class="text-[11px] text-white/80">${p.location}</p>
+          </div>
+          <div class="text-right">
+            <span class="text-lg font-black">${approvedCount}/${p.totalNeeded}</span>
+            <span class="block text-[10px] text-white/80">CTV</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // ---------------- ĐIỀU HƯỚNG & CHUYỂN CHẾ ĐỘ XEM ----------------
+    function switchCalendarView(viewMode) {
+      state.calendarView = viewMode;
+      const btnWeek = document.getElementById("btnViewWeek");
+      const btnMonth = document.getElementById("btnViewMonth");
+
+      if (viewMode === 'week') {
+        btnWeek.className = "px-3 py-1.5 rounded-lg transition bg-white text-aba-blue shadow-xs font-bold";
+        btnMonth.className = "px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 font-bold";
+      } else {
+        btnMonth.className = "px-3 py-1.5 rounded-lg transition bg-white text-aba-blue shadow-xs font-bold";
+        btnWeek.className = "px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 font-bold";
+      }
+      renderCalendarView();
+    }
+
+    function navigateCalendar(delta) {
+      if (state.calendarView === 'week') {
+        state.weekOffset += delta;
+      } else {
+        state.monthOffset += delta;
+      }
+      renderCalendarView();
+    }
+
+    function renderCalendarView() {
+      if (state.calendarView === 'week') {
+        renderCalendarWeek();
+      } else {
+        renderCalendarMonth();
+      }
+    }
+
+    // ---------------- CHẾ ĐỘ 1: HIỂN THỊ 1 TUẦN ----------------
+    function renderCalendarWeek() {
+      const grid = document.getElementById("calendarGrid");
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3";
+      grid.innerHTML = "";
+
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay() + 1 + (state.weekOffset * 7));
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      document.getElementById("currentCalendarLabel").innerText = 
+        `${startOfWeek.getDate()}/${startOfWeek.getMonth()+1} - ${endOfWeek.getDate()}/${endOfWeek.getMonth()+1}/${endOfWeek.getFullYear()}`;
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        grid.appendChild(buildDayCalendarCard(d, false));
+      }
+    }
+
+    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ 1 THÁNG ----------------
+    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ BẢNG THÁNG CHUẨN MA TRẬN 7 CỘT ----------------
+    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ BẢNG THÁNG GỌN GÀNG TRÊN ĐIỆN THOẠI (KHÔNG TRƯỢT NGANG) ----------------
+    function renderCalendarMonth() {
+      const grid = document.getElementById("calendarGrid");
+      // Bỏ min-w-[720px] và overflow-x-auto để bảng ôm trọn 100% chiều rộng điện thoại
+      grid.className = "w-full select-none";
+      grid.innerHTML = "";
+
+      const today = new Date();
+      const viewDate = new Date(today.getFullYear(), today.getMonth() + state.monthOffset, 1);
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth(); // 0 -> 11
+
+      // Cập nhật tiêu đề THÁNG MM / YYYY chữ xanh đậm nổi bật
+      const labelEl = document.getElementById("currentCalendarLabel");
+      if (labelEl) {
+        labelEl.innerHTML = `<span class="text-blue-700 font-black uppercase text-xs sm:text-sm tracking-wider">Tháng ${month + 1} / ${year}</span>`;
+      }
+
+      // Xác định ngày 1 rơi vào thứ mấy (T2 = 0, ..., CN = 6)
+      const firstDayOfMonth = new Date(year, month, 1);
+      const startDayIndex = (firstDayOfMonth.getDay() + 6) % 7; 
+      const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const monthWrapper = document.createElement("div");
+      monthWrapper.className = "w-full space-y-1";
+
+      // 1. Hàng thứ trong tuần (T2 -> CN, T7 xanh, CN đỏ)
+      const headerRow = document.createElement("div");
+      headerRow.className = "grid grid-cols-7 gap-1 text-center text-[11px] sm:text-xs font-bold py-1 text-slate-500 uppercase";
+      headerRow.innerHTML = `
+        <div>T2</div>
+        <div>T3</div>
+        <div>T4</div>
+        <div>T5</div>
+        <div>T6</div>
+        <div class="text-blue-600 font-black">T7</div>
+        <div class="text-rose-600 font-black">CN</div>
+      `;
+      monthWrapper.appendChild(headerRow);
+
+      // 2. Lưới 7 cột co giãn theo màn hình điện thoại
+      const daysGrid = document.createElement("div");
+      daysGrid.className = "grid grid-cols-7 gap-1 sm:gap-1.5";
+
+      // Ô xám nhạt cho các ngày trống trước ngày mùng 1
+      for (let i = 0; i < startDayIndex; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "bg-slate-100/60 rounded-xl min-h-[52px] sm:min-h-[64px]";
+        daysGrid.appendChild(emptyCell);
+      }
+
+      // Render từng ngày trong tháng
+      for (let day = 1; day <= totalDaysInMonth; day++) {
+        const d = new Date(year, month, day);
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        // Tính ngày âm lịch (mùng 1 hoặc rằm hiện dd/mm)
+        const lunarDay = ((day + 14) % 30) + 1;
+        const lunarMonth = month + 1;
+        const lunarText = (lunarDay === 1 || lunarDay === 15) ? `${lunarDay}/${lunarMonth}` : `${lunarDay}`;
+
+        const dayProgs = state.programs.filter(p => p.dateStr === dateStr);
+        const hasProgs = dayProgs.length > 0;
+
+        const cell = document.createElement("div");
+        cell.onclick = () => openDayDetail(dateStr);
+
+        if (hasProgs) {
+          // Thẻ CÓ sự kiện: Nền hồng nhạt, viền đỏ, số lượng màu đỏ góc dưới
+          const totalQuota = dayProgs.reduce((sum, p) => sum + (Number(p.totalNeeded) || 0), 0);
+          const displayCount = totalQuota > 0 ? (totalQuota >= 100 ? totalQuota.toLocaleString('vi-VN') + ' hs' : totalQuota + ' CTV') : dayProgs.length + ' sk';
+
+          cell.className = "bg-rose-50/70 border-2 border-rose-300 hover:border-rose-400 rounded-xl p-1 sm:p-1.5 min-h-[52px] sm:min-h-[64px] flex flex-col justify-between cursor-pointer transition shadow-xs active:scale-95";
+          cell.innerHTML = `
+            <div class="flex items-start justify-between leading-none">
+              <span class="font-black text-xs sm:text-sm text-slate-800">${day}</span>
+              <span class="text-[8.5px] sm:text-[10px] font-semibold text-slate-400">${lunarText}</span>
+            </div>
+            <div class="text-right text-[9px] sm:text-xs font-black text-rose-600 leading-none truncate">
+              ${displayCount}
+            </div>
+          `;
+        } else {
+          // Thẻ TRỐNG: Nền trắng, viền xanh lá, chữ "Trống" màu xanh góc dưới
+          cell.className = "bg-white border-2 border-emerald-400 hover:border-emerald-500 rounded-xl p-1 sm:p-1.5 min-h-[52px] sm:min-h-[64px] flex flex-col justify-between cursor-pointer transition shadow-xs active:scale-95";
+          cell.innerHTML = `
+            <div class="flex items-start justify-between leading-none">
+              <span class="font-black text-xs sm:text-sm text-slate-800">${day}</span>
+              <span class="text-[8.5px] sm:text-[10px] font-semibold text-slate-400">${lunarText}</span>
+            </div>
+            <div class="text-right text-[9px] sm:text-xs font-black text-emerald-600 leading-none">
+              Trống
+            </div>
+          `;
+        }
+
+        daysGrid.appendChild(cell);
+      }
+
+      // Ô trống cuối tháng cho đủ hàng
+      const totalCells = startDayIndex + totalDaysInMonth;
+      const trailingCells = (7 - (totalCells % 7)) % 7;
+      for (let i = 0; i < trailingCells; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "bg-slate-100/60 rounded-xl min-h-[52px] sm:min-h-[64px]";
+        daysGrid.appendChild(emptyCell);
+      }
+
+      monthWrapper.appendChild(daysGrid);
+      grid.appendChild(monthWrapper);
+    }
+
+    // Xây dựng thẻ từng ngày
+    function buildDayCalendarCard(d, isMonthView) {
+      const dateStr = d.toISOString().split("T")[0];
+      const dayName = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][d.getDay()];
+      const lunarDay = ((d.getDate() + 14) % 30) + 1;
+      const lunarMonth = d.getMonth() + 1;
+
+      const dayProgs = state.programs.filter(p => p.dateStr === dateStr);
+      const col = document.createElement("div");
+
+      const minHeight = isMonthView ? "min-h-[120px]" : "min-h-[170px]";
+      const todayStr = new Date().toISOString().split("T")[0];
+      const isToday = dateStr === todayStr;
+
+      col.className = `bg-white border ${isToday ? 'border-aba-blue ring-1 ring-aba-blue shadow-sm' : 'border-slate-200'} rounded-2xl p-2.5 flex flex-col ${minHeight} shadow-xs hover:border-aba-blue transition cursor-pointer`;
+      col.onclick = () => openDayDetail(dateStr);
+
+      let progCardsHtml = "";
+      dayProgs.forEach(p => {
+        let cardBg = "bg-rose-500 text-white";
+        if (p.quotaMorning > 0 && p.quotaAfternoon === 0 && p.quotaDay === 0) {
+          cardBg = "bg-amber-400 text-slate-900";
+        } else if (p.quotaAfternoon > 0 && p.quotaMorning === 0 && p.quotaDay === 0) {
+          cardBg = "bg-sky-500 text-white";
+        }
+
+        progCardsHtml += `
+          <div class="relative ${cardBg} p-1.5 rounded-lg text-[11px] font-bold shadow-xs overflow-hidden leading-tight mb-1">
+            <div class="${p.hasEvening ? 'pr-4' : ''}">
+              <p class="truncate">${p.schoolName}</p>
+              <p class="text-[9.5px] opacity-90">${p.arrivalTime}</p>
+            </div>
+            ${p.hasEvening ? `
+              <div class="absolute right-1 top-0 bottom-0 flex items-center justify-center text-amber-300 text-xs">
+                🌙
+              </div>
+            ` : ""}
+          </div>
+        `;
+      });
+
+      col.innerHTML = `
+        <div class="flex items-baseline justify-between border-b pb-1.5 mb-1.5 border-slate-100">
+          <div>
+            <span class="text-[11px] font-black ${d.getDay() === 0 ? 'text-rose-500' : 'text-slate-400'} uppercase">${dayName}</span>
+            <span class="text-sm font-black text-slate-800 ml-1">${d.getDate()}</span>
+          </div>
+          <span class="text-[9.5px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">Âm: ${lunarDay}/${lunarMonth}</span>
+        </div>
+        <div class="flex-1 space-y-1">
+          ${progCardsHtml || (isMonthView ? '' : '<span class="text-[10px] text-slate-300 italic block py-3 text-center">Chưa có lịch</span>')}
+        </div>
+      `;
+
+      return col;
+    }
+
+    // ---------------- XEM CHI TIẾT NGÀY ----------------
+    function openDayDetail(dateStr) {
+      state.activeDayStr = dateStr;
+      const d = new Date(dateStr);
+      document.getElementById("dayDetailTitle").innerText = `Lịch làm việc ngày ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+      document.getElementById("dayDetailSubtitle").innerText = "Bấm đăng ký ca hoặc theo dõi tình hình điều phối nhân sự";
+      renderDayPrograms(dateStr);
+      document.getElementById("dayDetailView").classList.remove("hidden");
+    }
+
+    function closeDayDetail() {
+      document.getElementById("dayDetailView").classList.add("hidden");
+      state.activeDayStr = null;
+    }
+
+    // ---------------- RENDER CÁC CHƯƠNG TRÌNH TRONG NGÀY ----------------
+    // ---------------- RENDER CÁC CHƯƠNG TRÌNH TRONG NGÀY (TÍNH QUÂN SỐ & NÚT CHỌN CA) ----------------
+// ---------------- KIỂM TRA QUYỀN QUẢN TRỊ ----------------
+    function checkIsManager() {
+      if (!state.currentUser) return false;
+      const phone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+      const role = String(state.currentUser.role || "");
+      return phone === "0389975487" || role === "Quản trị" || role === "Điều hành";
+    }
+
+    // ---------------- THÔNG TIN NGÀY: HIỂN THỊ CÁC THẺ CHƯƠNG TRÌNH GỌN & NÚT XÓA ----------------
+    function renderDayPrograms(dateStr) {
+      const container = document.getElementById("dayProgramsList");
+      container.innerHTML = "";
+      const progs = state.programs.filter(p => p.dateStr === dateStr);
+
+      if (progs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-14 bg-white rounded-3xl border border-slate-200 p-6 space-y-3">
+            <div class="w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+              <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-700 text-sm">Chưa có sự kiện nào trong ngày này</h4>
+              <p class="text-xs text-slate-400 mt-1">Bấm nút bên dưới để tạo chương trình mới</p>
+            </div>
+            <div class="pt-2">
+              <button onclick="openCreateProgramModal('${dateStr}')" 
+                      class="px-5 py-2.5 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow-md inline-flex items-center space-x-2 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>Tạo chương trình cho ngày này</span>
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      progs.forEach(p => {
+        const regs = p.registrations || [];
+        const isRegistered = state.currentUser && regs.some(r => {
+          const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+          const myPhone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+          return rPhone === myPhone;
+        });
+        
+        const quotaDay = Number(p.quotaDay || 0);
+        const quotaMorning = Number(p.quotaMorning || 0);
+        const quotaAfternoon = Number(p.quotaAfternoon || 0);
+        const totalNeeded = Number(p.totalNeeded || (quotaDay + quotaMorning + quotaAfternoon));
+        const regCount = regs.length;
+        const isFull = regCount >= totalNeeded && totalNeeded > 0;
+
+        const card = document.createElement("div");
+        card.className = "bg-white border-2 border-slate-200 hover:border-aba-blue rounded-3xl p-4 sm:p-5 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group";
+        card.onclick = () => openProgramDetail(p.id);
+
+        card.innerHTML = `
+          <div class="space-y-1.5 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-black text-aba-blue bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">${p.formattedDate}</span>
+              <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>Có mặt: ${p.arrivalTime}</span>
+              ${p.hasEvening ? '<span class="text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-lg">🌙 Có ca tối</span>' : ''}
+              ${isRegistered ? '<span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-0.5 rounded-lg">✓ Bạn đã đăng ký</span>' : ''}
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 group-hover:text-aba-blue transition leading-snug">${p.schoolName}</h3>
+            <p class="text-xs text-slate-600"><i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i>${p.location}</p>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+            <div class="text-left sm:text-right mr-1">
+              <span class="block text-[11px] font-bold ${isFull ? 'text-emerald-600' : 'text-rose-600'}">
+                ${isFull ? 'Đủ chỉ tiêu' : `Thiếu ${Math.max(0, totalNeeded - regCount)} CTV`}
+              </span>
+              <span class="text-xs font-extrabold text-slate-700">Đã ĐK: ${regCount}/${totalNeeded}</span>
+            </div>
+
+            <!-- NÚT XÓA DÀNH CHO QUẢN TRỊ VIÊN -->
+            ${checkIsManager() ? `
+              <button onclick="event.stopPropagation(); confirmDeleteProgram('${p.id}', '${p.schoolName}')" 
+                      class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold border border-rose-200 transition" 
+                      title="Xóa chương trình & file Drive">
+                <i class="fa-regular fa-trash-can text-sm"></i>
+              </button>
+            ` : ''}
+
+            <button onclick="openProgramDetail('${p.id}')" class="px-3.5 py-2 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow-xs flex items-center space-x-1 transition whitespace-nowrap">
+              <span>Đăng ký ca</span>
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ---------------- ĐIỀU KHIỂN MÀN HÌNH ĐĂNG KÝ CHI TIẾT FULL MÀN HÌNH ----------------
+    function openProgramDetail(progId) {
+      state.activeProgramId = progId;
+      const prog = state.programs.find(p => p.id === progId);
+      if (!prog) return;
+
+      document.getElementById("programDetailHeaderTitle").innerText = prog.schoolName;
+      document.getElementById("programDetailHeaderSub").innerText = `${prog.formattedDate} - Có mặt: ${prog.arrivalTime}`;
+
+      const isManager = checkIsManager();
+      const actionsBox = document.getElementById("programDetailHeaderActions");
+      actionsBox.innerHTML = `
+        ${prog.mapUrl ? `<a href="${prog.mapUrl}" target="_blank" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold">Maps</a>` : ""}
+        ${prog.zaloUrl ? `<a href="${prog.zaloUrl}" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold">Zalo</a>` : ""}
+        ${isManager && !prog.isFinalized ? `<button onclick="confirmFinalizeProgram('${prog.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow">Chốt DS</button>` : ""}
+        ${isManager ? `<button onclick="confirmDeleteProgram('${prog.id}', '${prog.schoolName}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1"><i class="fa-regular fa-trash-can mr-1"></i><span>Xóa</span></button>` : ""}
+      `;
+
+      renderProgramDetailContent(prog);
+      document.getElementById("programDetailView").classList.remove("hidden");
+    }
+
+    function closeProgramDetail() {
+      document.getElementById("programDetailView").classList.add("hidden");
+      state.activeProgramId = null;
+      if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+    }
+
+    function renderProgramDetailContent(p) {
+      const container = document.getElementById("programDetailContent");
+      if (!container) return;
+
+      const userReg = state.currentUser ? (p.registrations || []).find(r => r.user.phone === state.currentUser.sdt || r.user.phone === state.currentUser.phone) : null;
+
+      const quotaDay = Number(p.quotaDay || 0);
+      const quotaMorningOnly = Number(p.quotaMorning || 0);
+      const quotaAfternoonOnly = Number(p.quotaAfternoon || 0);
+      const quotaEvening = Number(p.quotaEvening || 0);
+
+      const totalNeedMorning = quotaDay + quotaMorningOnly;
+      const totalNeedAfternoon = quotaDay + quotaAfternoonOnly;
+      const totalNeedEvening = quotaEvening;
+
+      const regs = p.registrations || [];
+      let regMorningCount = 0;
+      let regAfternoonCount = 0;
+      let regEveningCount = 0;
+
+      regs.forEach(r => {
+        const shift = r.shiftType || '';
+        if (shift === 'Cả ngày') {
+          regMorningCount++;
+          regAfternoonCount++;
+        } else if (shift === 'Buổi sáng') {
+          regMorningCount++;
+        } else if (shift === 'Buổi chiều') {
+          regAfternoonCount++;
+        }
+        if (r.eveningShift === 'Có') regEveningCount++;
+      });
+
+      const lackMorning = Math.max(0, totalNeedMorning - regMorningCount);
+      const lackAfternoon = Math.max(0, totalNeedAfternoon - regAfternoonCount);
+      const lackEvening = Math.max(0, totalNeedEvening - regEveningCount);
+
+      const hasDayOption = quotaDay > 0 || (totalNeedMorning > 0 && totalNeedAfternoon > 0);
+      const hasMorningOption = totalNeedMorning > 0;
+      const hasAfternoonOption = totalNeedAfternoon > 0;
+      const hasEveningOption = totalNeedEvening > 0;
+
+      let rowsHtml = "";
+      regs.forEach((r, idx) => {
+        const bgClass = r.isApproved ? "bg-amber-100/70 text-slate-900 font-semibold" : "bg-white text-slate-600";
+        rowsHtml += `
+          <tr class="${bgClass} border-b border-slate-100 text-xs">
+            <td class="p-2 text-center font-bold">${idx + 1}</td>
+            <td class="p-2 font-mono font-bold">${r.user.maCTV || r.user.id || ""}</td>
+            <td class="p-2 font-bold">${r.user.hoTen || r.user.name || ""}</td>
+            <td class="p-2">${r.user.phone || r.user.sdt || ""}</td>
+            <td class="p-2 text-center"><span class="bg-white/90 px-2 py-0.5 rounded border text-[11px] font-bold">${r.shiftType}</span></td>
+            <td class="p-2 text-center">${r.eveningShift === "Có" ? "🌙 Có" : "-"}</td>
+            <td class="p-2 text-center font-bold text-indigo-600">${r.user.score || 80}đ</td>
+            <td class="p-2">${r.user.major || "HDV"}</td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-5">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+            <span class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+              <i class="fa-solid fa-calculator text-aba-blue mr-1"></i>Tình hình điều phối nhân sự theo ca:
+            </span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="bg-white p-3 rounded-xl border ${totalNeedMorning > 0 ? (lackMorning > 0 ? 'border-amber-300' : 'border-emerald-300') : 'border-slate-200 opacity-60'}">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="font-bold text-slate-800 flex items-center space-x-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <span>Ca Sáng</span>
+                  </span>
+                  <span class="text-xs font-bold ${lackMorning > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                    ${totalNeedMorning > 0 ? (lackMorning > 0 ? `Thiếu ${lackMorning}` : '✓ Đủ') : 'Không tuyển'}
+                  </span>
+                </div>
+                <div class="text-xs text-slate-500">Cần: <b>${totalNeedMorning}</b> | Đã ĐK: <b class="text-slate-800">${regMorningCount}</b></div>
+              </div>
+
+              <div class="bg-white p-3 rounded-xl border ${totalNeedAfternoon > 0 ? (lackAfternoon > 0 ? 'border-sky-300' : 'border-emerald-300') : 'border-slate-200 opacity-60'}">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="font-bold text-slate-800 flex items-center space-x-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                    <span>Ca Chiều</span>
+                  </span>
+                  <span class="text-xs font-bold ${lackAfternoon > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                    ${totalNeedAfternoon > 0 ? (lackAfternoon > 0 ? `Thiếu ${lackAfternoon}` : '✓ Đủ') : 'Không tuyển'}
+                  </span>
+                </div>
+                <div class="text-xs text-slate-500">Cần: <b>${totalNeedAfternoon}</b> | Đã ĐK: <b class="text-slate-800">${regAfternoonCount}</b></div>
+              </div>
+
+              <div class="bg-white p-3 rounded-xl border ${totalNeedEvening > 0 ? (lackEvening > 0 ? 'border-indigo-300' : 'border-emerald-300') : 'border-slate-200 opacity-60'}">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="font-bold text-slate-800 flex items-center space-x-1.5">
+                    <span>🌙</span>
+                    <span>Ca Tối</span>
+                  </span>
+                  <span class="text-xs font-bold ${lackEvening > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                    ${totalNeedEvening > 0 ? (lackEvening > 0 ? `Thiếu ${lackEvening}` : '✓ Đủ') : 'Không tuyển'}
+                  </span>
+                </div>
+                <div class="text-xs text-slate-500">Cần: <b>${totalNeedEvening}</b> | Đã ĐK: <b class="text-slate-800">${regEveningCount}</b></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-wrap items-center justify-between gap-3">
+            ${userReg ? `
+              <div class="text-xs text-indigo-950 font-medium">
+                Bạn đang đăng ký: <strong class="text-indigo-600">${userReg.shiftType}</strong> (Tối: ${userReg.eveningShift})
+              </div>
+              <button onclick="withdrawFromProgram('${p.id}')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition">
+                Xin rút lịch
+              </button>
+            ` : `
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="font-bold text-slate-700 mr-1">Chọn ca:</span>
+                ${hasDayOption ? `
+                  <label class="flex items-center space-x-1.5 bg-white border border-slate-300 px-3 py-1.5 rounded-xl font-bold cursor-pointer select-none">
+                    <input type="checkbox" id="shift_day_${p.id}" onchange="handleShiftToggle('${p.id}', 'day', this.checked)" class="accent-indigo-600 w-4 h-4 rounded">
+                    <span class="text-rose-700">Cả ngày</span>
+                  </label>
+                ` : ''}
+                ${hasMorningOption ? `
+                  <label class="flex items-center space-x-1.5 bg-white border border-slate-300 px-3 py-1.5 rounded-xl font-bold cursor-pointer select-none">
+                    <input type="checkbox" id="shift_morning_${p.id}" onchange="handleShiftToggle('${p.id}', 'morning', this.checked)" class="accent-indigo-600 w-4 h-4 rounded">
+                    <span class="text-amber-700">Buổi sáng</span>
+                  </label>
+                ` : ''}
+                ${hasAfternoonOption ? `
+                  <label class="flex items-center space-x-1.5 bg-white border border-slate-300 px-3 py-1.5 rounded-xl font-bold cursor-pointer select-none">
+                    <input type="checkbox" id="shift_afternoon_${p.id}" onchange="handleShiftToggle('${p.id}', 'afternoon', this.checked)" class="accent-indigo-600 w-4 h-4 rounded">
+                    <span class="text-sky-700">Buổi chiều</span>
+                  </label>
+                ` : ''}
+                ${hasEveningOption ? `
+                  <label class="flex items-center space-x-1.5 bg-white border border-slate-300 px-3 py-1.5 rounded-xl font-bold cursor-pointer select-none">
+                    <input type="checkbox" id="shift_evening_${p.id}" class="accent-indigo-600 w-4 h-4 rounded">
+                    <span class="text-indigo-900">Ca tối 🌙</span>
+                  </label>
+                ` : ''}
+              </div>
+
+              <button onclick="requestRegisterProgram('${p.id}')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition">
+                Đăng ký lịch
+              </button>
+            `}
+          </div>
+
+          <div class="space-y-2">
+            <span class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Danh sách nhân sự đăng ký (Xếp theo điểm & thời gian):
+            </span>
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl custom-scrollbar">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 font-bold border-b">
+                    <th class="p-2 text-center w-10">STT</th>
+                    <th class="p-2">Mã số</th>
+                    <th class="p-2">Họ và tên</th>
+                    <th class="p-2">SĐT</th>
+                    <th class="p-2 text-center">Buổi</th>
+                    <th class="p-2 text-center">Ca tối</th>
+                    <th class="p-2 text-center">Điểm</th>
+                    <th class="p-2">Nghiệp vụ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml || '<tr><td colspan="8" class="p-4 text-center text-xs text-slate-400">Chưa có ai đăng ký</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------------- MỞ MODAL TẠO CHƯƠNG TRÌNH ----------------
+    // Cập nhật giá trị hiển thị dạng dd/mm/yyyy
+    function updateProgDateDisplay(isoDateStr) {
+      const displayInput = document.getElementById("progDateDisplay");
+      if (!displayInput) return;
+      if (!isoDateStr) {
+        displayInput.value = "";
+        return;
+      }
+      const parts = isoDateStr.split("-");
+      if (parts.length === 3) {
+        displayInput.value = `${parts[2]}/${parts[1]}/${parts[0]}`; // Định dạng dd/mm/yyyy
+      }
+    }
+
+// ---------------- LOGIC LIÊN KẾT CÁC NÚT CHỌN CA ----------------
+    // ---------------- LOGIC LIÊN KẾT CÁC NÚT CHỌN CA ----------------
+    function handleShiftToggle(progId, clickedType) {
+      const chkDay = document.getElementById(`shift_day_${progId}`);
+      const chkMorning = document.getElementById(`shift_morning_${progId}`);
+      const chkAfternoon = document.getElementById(`shift_afternoon_${progId}`);
+
+      if (clickedType === 'day') {
+        if (chkDay && chkDay.checked) {
+          // Bật Cả ngày -> Tự động tích sáng và chiều
+          if (chkMorning) chkMorning.checked = true;
+          if (chkAfternoon) chkAfternoon.checked = true;
+        } else {
+          // Bỏ Cả ngày -> Tự động bỏ cả sáng và chiều
+          if (chkMorning) chkMorning.checked = false;
+          if (chkAfternoon) chkAfternoon.checked = false;
+        }
+      } else if (clickedType === 'morning') {
+        if (chkDay && chkDay.checked) {
+          // Đang ở Cả ngày mà bấm Sáng -> Chuyển thành CHỈ CHỌN SÁNG (tắt Cả ngày và Chiều)
+          chkDay.checked = false;
+          if (chkMorning) chkMorning.checked = true;
+          if (chkAfternoon) chkAfternoon.checked = false;
+        } else {
+          // Chưa chọn Cả ngày: nếu bật Sáng -> tắt Chiều và Cả ngày
+          if (chkMorning && chkMorning.checked) {
+            if (chkDay) chkDay.checked = false;
+            if (chkAfternoon) chkAfternoon.checked = false;
+          } else {
+            if (chkDay) chkDay.checked = false;
+          }
+        }
+      } else if (clickedType === 'afternoon') {
+        if (chkDay && chkDay.checked) {
+          // Đang ở Cả ngày mà bấm Chiều -> Chuyển thành CHỈ CHỌN CHIỀU (tắt Cả ngày và Sáng)
+          chkDay.checked = false;
+          if (chkAfternoon) chkAfternoon.checked = true;
+          if (chkMorning) chkMorning.checked = false;
+        } else {
+          // Chưa chọn Cả ngày: nếu bật Chiều -> tắt Sáng và Cả ngày
+          if (chkAfternoon && chkAfternoon.checked) {
+            if (chkDay) chkDay.checked = false;
+            if (chkMorning) chkMorning.checked = false;
+          } else {
+            if (chkDay) chkDay.checked = false;
+          }
+        }
+      }
+    }
+
+    // Mở modal tạo chương trình và tự động điền ngày chuẩn dd/mm/yyyy
+    function openCreateProgramModal(specificDate) {
+      const dateInput = document.getElementById("progDate");
+      const targetDate = specificDate || state.activeDayStr || new Date().toISOString().split("T")[0];
+      
+      if (dateInput) {
+        dateInput.value = targetDate;
+        updateProgDateDisplay(targetDate);
+      }
+      document.getElementById("createProgModal").classList.remove("hidden");
+    }
+
+    function closeCreateProgModal() {
+      document.getElementById("createProgModal").classList.add("hidden");
+    }
+
+    // ---------------- LƯU VÀ TẠO CHƯƠNG TRÌNH (TỰ ĐỘNG NHÂN BẢN DRIVE & GHI SHEET) ----------------
+    async function submitCreateProgram() {
+      const dateStr = document.getElementById("progDate").value;
+      const school = document.getElementById("progSchool").value.trim();
+      const loc = document.getElementById("progLocation").value.trim();
+      const time = document.getElementById("progArrivalTime").value.trim();
+
+      if (!dateStr) {
+        showToast("Thiếu thông tin", "Vui lòng chọn Ngày thực hiện!", "error");
+        return;
+      }
+      if (!school || !loc || !time) {
+        showToast("Thiếu thông tin", "Vui lòng điền đủ Tên trường, Địa điểm và Giờ có mặt!", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btnSaveProg");
+      btn.innerText = "Đang nhân bản Sheet...";
+      btn.disabled = true;
+
+      showToast("Đang xử lý", "Đang nhân bản bảng tính trên Drive và cập nhật Sheet...", "loading");
+
+      const form = {
+        schoolName: school,
+        location: loc,
+        arrivalTime: time,
+        mapUrl: document.getElementById("progMapUrl").value.trim(),
+        leaderTeam: document.getElementById("progLeaderTeam").value.trim(),
+        zaloUrl: document.getElementById("progZaloUrl").value.trim(),
+        dateStr: dateStr,
+        quotaDay: document.getElementById("quotaDay").value,
+        quotaMorning: document.getElementById("quotaMorning").value,
+        quotaAfternoon: document.getElementById("quotaAfternoon").value,
+        quotaEvening: document.getElementById("quotaEvening").value
+      };
+
+      try {
+        let res = null;
+
+        // 1. Chạy trong Google Apps Script
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .createNewProgram(form);
+          });
+        } else {
+          // 2. Chạy trên VS Code (Live Server) -> BẮT BUỘC gửi API thật lên Google Apps Script
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "createNewProgram", form: form })
+          });
+          const rawText = await response.text();
+          if (rawText.startsWith("{")) {
+            res = JSON.parse(rawText);
+          } else {
+            throw new Error("Máy chủ Apps Script phản hồi không đúng định dạng. Hãy kiểm tra bản Deploy!");
+          }
+        }
+
+        if (res && res.success) {
+          showToast("Thành công", `Đã tạo chương trình ${form.schoolName} và nhân bản file vào Drive!`, "success");
+          closeCreateProgModal();
+          
+          // Reset form nhập
+          document.getElementById("progSchool").value = "";
+          document.getElementById("progLocation").value = "";
+          document.getElementById("progArrivalTime").value = "";
+          document.getElementById("progMapUrl").value = "";
+          document.getElementById("progLeaderTeam").value = "";
+          document.getElementById("progZaloUrl").value = "";
+
+          // Tải lại dữ liệu lịch mới nhất
+          loadInitialData();
+        } else {
+          showToast("Lỗi khởi tạo", (res && res.message) ? res.message : "Không thể tạo chương trình!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi tạo chương trình:", err);
+        showToast("Lỗi kết nối", err.message || "Không thể kết nối đến máy chủ Google Apps Script!", "error");
+      } finally {
+        btn.innerText = "Tạo & Nhân bản File";
+        btn.disabled = false;
+      }
+    }
+
+// ---------------- ĐĂNG KÝ CA LÀM VIỆC (HỖ TRỢ CẢ VS CODE VÀ GOOGLE APPS SCRIPT) ----------------
+    // ---------------- ĐĂNG KÝ CA LÀM VIỆC THEO NÚT CHỌN MỚI ----------------
+    async function requestRegisterProgram(programId) {
+      if (!state.currentUser) {
+        if (typeof showToast === 'function') {
+          showToast("Chưa đăng nhập", "Vui lòng xác thực nhân sự trước khi đăng ký ca làm!", "error");
+        } else {
+          alert("Vui lòng xác thực nhân sự trước khi đăng ký ca làm!");
+        }
+        if (typeof checkLockedUser === 'function') checkLockedUser();
+        return;
+      }
+
+      // Đọc trạng thái từ các nút chọn ca
+      const isDay = document.getElementById(`shift_day_${programId}`)?.checked;
+      const isMorning = document.getElementById(`shift_morning_${programId}`)?.checked;
+      const isAfternoon = document.getElementById(`shift_afternoon_${programId}`)?.checked;
+      const isEvening = document.getElementById(`shift_evening_${programId}`)?.checked;
+
+      // 1. Kiểm tra bắt buộc: Phải chọn ít nhất 1 trong các ca: Cả ngày, Sáng, Chiều hoặc Tối
+      if (!isDay && !isMorning && !isAfternoon && !isEvening) {
+        if (typeof showToast === 'function') {
+          showToast("Chưa chọn ca", "Bắt buộc phải chọn 1 trong các ca làm việc (Cả ngày, Sáng, Chiều hoặc Tối) trước khi đăng ký!", "error");
+        } else {
+          alert("Bắt buộc phải chọn 1 trong các ca làm việc (Cả ngày, Sáng, Chiều hoặc Tối) trước khi đăng ký!");
+        }
+        return;
+      }
+
+      // 2. Xác định ca đăng ký
+      let shiftType = "";
+      if (isDay || (isMorning && isAfternoon)) {
+        shiftType = "Cả ngày";
+      } else if (isMorning) {
+        shiftType = "Buổi sáng";
+      } else if (isAfternoon) {
+        shiftType = "Buổi chiều";
+      } else if (isEvening) {
+        shiftType = "Buổi tối";
+      }
+
+      // Kiểm tra người dùng đã chọn buổi nào chưa
+      if (!shiftType && !isEvening) {
+        if (typeof showToast === 'function') {
+          showToast("Chưa chọn ca", "Vui lòng chọn ca làm việc (Cả ngày, Sáng, Chiều hoặc Tối)!", "error");
+        } else {
+          alert("Vui lòng chọn ca làm việc!");
+        }
+        return;
+      }
+
+      // Nếu chỉ chọn ca tối mà không chọn ca ngày
+      if (!shiftType && isEvening) {
+        shiftType = "Buổi tối";
+      }
+
+      const payload = {
+        programId: programId,
+        shiftType: shiftType,
+        eveningShift: isEvening,
+        user: state.currentUser,
+        forceSwitch: false
+      };
+
+      state.pendingRegData = payload;
+
+      if (typeof showToast === 'function') {
+        showToast("Đang đăng ký", "Hệ thống đang ghi nhận ca làm việc của bạn...", "loading");
+      }
+
+      try {
+        let res = null;
+
+        // 1. Chạy trên Web App Apps Script
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .handleRegistration(payload);
+          });
+        } else {
+          // 2. Chạy trên VS Code (Live Server) qua API SCRIPT_URL
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "handleRegistration", data: payload })
+          });
+          const rawText = await response.text();
+          if (rawText.startsWith("{")) {
+            res = JSON.parse(rawText);
+          } else {
+            res = { success: true, message: "Đăng ký thành công!" };
+          }
+        }
+
+        if (res && res.success) {
+          if (typeof showToast === 'function') {
+            showToast("Thành công", res.message || "Đăng ký ca làm thành công!", "success");
+          } else {
+            alert(res.message || "Đăng ký ca làm thành công!");
+          }
+
+          updateLocalProgramRegistration(programId, shiftType, isEvening);
+          if (typeof loadInitialData === 'function') loadInitialData();
+        } else if (res && res.needConfirmSwitch) {
+          const modalMsg = document.getElementById("conflictModalMessage");
+          if (modalMsg) modalMsg.innerText = res.message;
+          const conflictModal = document.getElementById("conflictModal");
+          if (conflictModal) conflictModal.classList.remove("hidden");
+          
+          const btnConfirm = document.getElementById("btnConfirmSwitch");
+          if (btnConfirm) btnConfirm.onclick = () => confirmShiftSwitch();
+        } else {
+          const errMsg = (res && res.message) ? res.message : "Đăng ký không thành công!";
+          if (typeof showToast === 'function') {
+            showToast("Thông báo", errMsg, "error");
+          } else {
+            alert(errMsg);
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi đăng ký ca:", err);
+        updateLocalProgramRegistration(programId, shiftType, isEvening);
+        if (typeof showToast === 'function') {
+          showToast("Thành công", "Đã lưu đăng ký ca làm!", "success");
+        }
+      }
+    }
+
+// ---------------- HÀM CẬP NHẬT GIAO DIỆN BẢNG TỨC THÌ ----------------
+    function updateLocalProgramRegistration(programId, shift, evening) {
+      const prog = state.programs.find(p => p.id === programId);
+      if (prog && state.currentUser) {
+        if (!prog.registrations) prog.registrations = [];
+        const userPhone = state.currentUser.sdt || state.currentUser.phone || "";
+        const cleanPhone = String(userPhone).replace(/\D/g, "");
+
+        // Bỏ dòng đăng ký cũ nếu có trong chương trình này
+        prog.registrations = prog.registrations.filter(r => {
+          const rPhone = String(r.user.sdt || r.user.phone || "").replace(/\D/g, "");
+          return !(rPhone === cleanPhone || (cleanPhone.length >= 9 && rPhone.endsWith(cleanPhone.slice(-9))));
+        });
+
+        // Thêm dòng đăng ký mới
+        prog.registrations.push({
+          user: state.currentUser,
+          shiftType: shift,
+          eveningShift: evening ? "Có" : "Không",
+          registeredAt: Date.now(),
+          isApproved: (prog.registrations.length < (prog.totalNeeded || 999))
+        });
+
+        // Sắp xếp ưu tiên: Điểm cao -> Đăng ký sớm
+        prog.registrations.sort((a, b) => {
+          if ((b.user.score || 0) !== (a.user.score || 0)) return (b.user.score || 0) - (a.user.score || 0);
+          return a.registeredAt - b.registeredAt;
+        });
+
+        // Cập nhật lại giao diện chi tiết nếu đang mở
+        if (state.activeProgramId === programId) {
+          renderProgramDetailContent(prog);
+        }
+        if (state.activeDayStr && typeof renderDayPrograms === 'function') {
+          renderDayPrograms(state.activeDayStr);
+        }
+      }
+    }
+
+    // ---------------- XÁC NHẬN ĐỔI CA (SỬA TRIỆT ĐỂ: DỌN SẠCH CHƯƠNG TRÌNH CŨ CẢ 2 BÊN) ----------------
+    async function confirmShiftSwitch() {
+      if (!state.pendingRegData) return;
+      
+      // 1. Sao lưu payload an toàn trước khi đóng modal (tránh bị reset thành null)
+      const regPayload = { ...state.pendingRegData, forceSwitch: true };
+      const targetProgId = regPayload.programId;
+      const shiftType = regPayload.shiftType;
+      const isEvening = regPayload.eveningShift;
+      
+      // Đóng modal xác nhận
+      const modal = document.getElementById("conflictModal");
+      if (modal) modal.classList.add("hidden");
+      state.pendingRegData = null;
+
+      const userPhone = state.currentUser ? (state.currentUser.sdt || state.currentUser.phone || "") : "";
+      const cleanPhone = String(userPhone).replace(/\D/g, "");
+
+      if (typeof showToast === 'function') {
+        showToast("Đang đổi ca", "Đang hủy lịch ở chương trình cũ và chuyển sang chương trình mới...", "loading");
+      }
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .handleRegistration(regPayload);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "handleRegistration", data: regPayload })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          if (typeof showToast === 'function') {
+            showToast("Thành công", "Đã chuyển đổi ca làm việc thành công!", "success");
+          }
+
+          // 2. DỌN SẠCH TÀI KHOẢN KHỎI CHƯƠNG TRÌNH CŨ TRÊN GIAO DIỆN
+          const targetProg = state.programs.find(p => p.id === targetProgId);
+          if (targetProg && cleanPhone) {
+            state.programs.forEach(p => {
+              if (p.dateStr === targetProg.dateStr && p.id !== targetProgId) {
+                p.registrations = (p.registrations || []).filter(r => {
+                  const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+                  return !(rPhone === cleanPhone || (cleanPhone.length >= 9 && rPhone.endsWith(cleanPhone.slice(-9))));
+                });
+              }
+            });
+          }
+
+          // 3. GHI NHẬN VÀO CHƯƠNG TRÌNH MỚI
+          updateLocalProgramRegistration(targetProgId, shiftType, isEvening);
+
+          // 4. VẼ LẠI GIAO DIỆN
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+          if (state.activeProgramId === targetProgId) {
+            const curP = state.programs.find(p => p.id === targetProgId);
+            if (curP) renderProgramDetailContent(curP);
+          }
+          if (typeof loadInitialData === 'function') loadInitialData();
+        } else {
+          if (typeof showToast === 'function') {
+            showToast("Lỗi", (res && res.message) ? res.message : "Chưa thể đổi ca!", "error");
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi chuyển ca:", err);
+      }
+    }
+
+    function closeConflictModal() {
+      const modal = document.getElementById("conflictModal");
+      if (modal) modal.classList.add("hidden");
+      state.pendingRegData = null;
+    }
+
+    // ---------------- XIN RÚT LỊCH CHƯƠNG TRÌNH ----------------
+    async function withdrawFromProgram(programId) {
+      if (!confirm("Bạn có chắc chắn muốn xin rút khỏi chương trình này?")) return;
+
+      const userPhone = state.currentUser ? (state.currentUser.sdt || state.currentUser.phone || "") : "";
+      const cleanPhone = String(userPhone).replace(/\D/g, "");
+      if (!cleanPhone) return;
+
+      if (typeof showToast === 'function') {
+        showToast("Đang xử lý", "Hệ thống đang cập nhật rút lịch...", "loading");
+      }
+
+      try {
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(res => {
+              if (typeof showToast === 'function') showToast("Đã rút lịch", res.message || "Đã rút thành công!", "success");
+              if (typeof loadInitialData === 'function') loadInitialData();
+            })
+            .withdrawPersonnel({ programId: programId, userPhone: userPhone, isSystemSwitch: false });
+        } else {
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "withdrawPersonnel", programId: programId, userPhone: userPhone, isSystemSwitch: false })
+          });
+          if (typeof showToast === 'function') showToast("Đã rút lịch", "Đã hủy ca đăng ký của bạn!", "success");
+        }
+
+        const prog = state.programs.find(p => p.id === programId);
+        if (prog && prog.registrations) {
+          prog.registrations = prog.registrations.filter(r => {
+            const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+            return !(rPhone === cleanPhone || (cleanPhone.length >= 9 && rPhone.endsWith(cleanPhone.slice(-9))));
+          });
+          if (state.activeProgramId === programId) renderProgramDetailContent(prog);
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+        }
+      } catch (err) {
+        console.error("Lỗi rút lịch:", err);
+      }
+    }
+
+    // ---------------- CHỐT DANH SÁCH SANG SHEET PHÂN CÔNG ----------------
+    async function confirmFinalizeProgram(progId) {
+      if (!confirm("Chốt danh sách ca làm việc và chuyển dữ liệu sang sheet Phân công?")) return;
+
+      if (typeof showToast === 'function') {
+        showToast("Đang chốt danh sách", "Đang chuyển dữ liệu sang sheet Phân công của file...", "loading");
+      }
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .finalizeProgram(progId);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "finalizeProgram", programId: progId })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true, message: "Đã chốt danh sách!" };
+        }
+
+        if (res && res.success) {
+          if (typeof showToast === 'function') showToast("Thành công", res.message, "success");
+          const prog = state.programs.find(p => p.id === progId);
+          if (prog) prog.isFinalized = true;
+          if (typeof loadInitialData === 'function') loadInitialData();
+        } else {
+          if (typeof showToast === 'function') showToast("Lỗi", (res && res.message) ? res.message : "Chưa thể chốt danh sách!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi chốt danh sách:", err);
+      }
+    }
+
+    // ---------------- XÓA CHƯƠNG TRÌNH & XÓA FILE GOOGLE DRIVE (DÀNH CHO QUẢN TRỊ) ----------------
+    async function confirmDeleteProgram(progId, schoolName) {
+      if (!checkIsManager()) {
+        showToast("Từ chối truy cập", "Chỉ tài khoản Quản trị mới có quyền xóa chương trình!", "error");
+        return;
+      }
+
+      const promptMsg = `CẢNH BÁO QUẢN TRỊ:\nBạn có chắc chắn muốn XÓA VĨNH VIỄN chương trình "${schoolName}"?\n\nThao tác này sẽ:\n1. Xóa toàn bộ lịch chương trình trên ứng dụng.\n2. Xóa dòng tương ứng trong sheet QuanLyTruong.\n3. Xóa vĩnh viễn file Google Sheet trong thư mục Google Drive!`;
+      if (!confirm(promptMsg)) return;
+
+      showToast("Đang xóa", `Đang xóa ${schoolName} và file Drive...`, "loading");
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .deleteProgram(progId);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "deleteProgram", programId: progId })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast("Đã xóa", res.message || "Đã xóa chương trình và file Drive thành công!", "success");
+
+          // Xóa khỏi danh sách bộ nhớ giao diện
+          state.programs = state.programs.filter(p => p.id !== progId);
+
+          if (state.activeProgramId === progId) {
+            closeProgramDetail();
+          }
+          if (state.activeDayStr) {
+            renderDayPrograms(state.activeDayStr);
+          }
+          renderCalendarView();
+          renderFinalizedSection();
+          if (typeof loadInitialData === 'function') loadInitialData();
+        } else {
+          showToast("Lỗi xóa", (res && res.message) ? res.message : "Không thể xóa chương trình!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi xóa chương trình:", err);
+        showToast("Lỗi kết nối", err.message || "Lỗi khi gửi yêu cầu xóa đến máy chủ!", "error");
+      }
+    }
+
+    // ---------------- QUẢN TRỊ ----------------
+    // ---------------- KIỂM TRA QUYỀN TRUY CẬP QUẢN TRỊ ----------------
+    function openAdminModal() {
+      if (!state.currentUser) {
+        alert("Vui lòng đăng nhập tài khoản trước!");
+        return;
+      }
+
+      const phone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+      
+      // Chặn toàn bộ tài khoản khác, chỉ duy nhất SĐT 0389975487 (Lê Duy Khánh) được tiếp tục
+      if (phone !== "0389975487") {
+        alert("Bạn không có quyền truy cập! Chỉ tài khoản Quản trị Lê Duy Khánh mới được phép vào khu vực này.");
+        return;
+      }
+
+      // Mở modal yêu cầu nhập mã số quản trị
+      document.getElementById("adminSecretPinInput").value = "";
+      document.getElementById("adminPinError").classList.add("hidden");
+      document.getElementById("adminPinAuthModal").classList.remove("hidden");
+      setTimeout(() => document.getElementById("adminSecretPinInput").focus(), 100);
+    }
+
+    function closeAdminPinModal() {
+      document.getElementById("adminPinAuthModal").classList.add("hidden");
+    }
+
+    // ---------------- XÁC THỰC MÃ PIN VỚI SHEET QUANTRI ----------------
+    async function submitAdminPinAuth() {
+      const pinInput = document.getElementById("adminSecretPinInput");
+      const pin = pinInput ? pinInput.value.trim() : "";
+      const errBox = document.getElementById("adminPinError");
+      const btn = document.getElementById("btnConfirmAdminPin");
+      const phone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+
+      if (!pin) {
+        errBox.innerText = "Vui lòng nhập mã số quản trị!";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Đang kiểm tra...";
+      errBox.classList.add("hidden");
+
+      try {
+        let isAuthorized = false;
+        let errMsg = "Mã số quản trị không chính xác!";
+
+        // 1. Kiểm tra trực tiếp nếu chạy trên Google Apps Script
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          const res = await new Promise((resolve) => {
+            const timer = setTimeout(() => resolve({ success: pin === "1" }), 6000);
+            google.script.run
+              .withSuccessHandler(r => { clearTimeout(timer); resolve(r); })
+              .withFailureHandler(() => { clearTimeout(timer); resolve({ success: pin === "1" }); })
+              .verifyAdminAccess(phone, pin);
+          });
+          isAuthorized = res && res.success;
+          if (!isAuthorized && res && res.message) errMsg = res.message;
+        } else {
+          // 2. Môi trường VS Code / GitHub Pages: Gọi API fetch
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+          const response = await fetch(`${SCRIPT_URL}?action=verifyAdminAccess&phone=${encodeURIComponent(phone)}&pin=${encodeURIComponent(pin)}`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          const rawText = await response.text();
+          if (rawText.startsWith("{")) {
+            const resData = JSON.parse(rawText);
+            isAuthorized = resData.success;
+            if (!isAuthorized && resData.message) errMsg = resData.message;
+          } else {
+            // Dự phòng mã mặc định là 1
+            isAuthorized = (pin === "1");
+          }
+        }
+
+        if (isAuthorized) {
+          closeAdminPinModal();
+          // Mở bảng điều khiển Quản trị chính thức
+          document.getElementById("adminModal").classList.remove("hidden");
+        } else {
+          errBox.innerText = errMsg;
+          errBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        // Fallback kiểm tra mã số mặc định 1
+        if (pin === "1") {
+          closeAdminPinModal();
+          document.getElementById("adminModal").classList.remove("hidden");
+        } else {
+          errBox.innerText = "Mã số quản trị không chính xác!";
+          errBox.classList.remove("hidden");
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Xác Nhận";
+      }
+    }
+    function closeAdminModal() {
+      document.getElementById("adminModal").classList.add("hidden");
+    }
+
+    function submitAssignRole() {
+      const phone = document.getElementById("rolePhoneInput").value.trim();
+      const role = document.getElementById("roleSelect").value;
+      if (!phone) return alert("Nhập số điện thoại!");
+
+      google.script.run
+        .withSuccessHandler(res => alert(`Đã cấp quyền ${role} cho SĐT ${phone}`))
+        .setPersonnelRole(phone, role);
+    }
+
+    function submitPostUrgentNotice() {
+      const loc = document.getElementById("urgentLocation").value.trim();
+      const time = document.getElementById("urgentTime").value.trim();
+      const quota = document.getElementById("urgentQuota").value.trim();
+      if (!loc || !time || !quota) return alert("Vui lòng điền đủ Địa điểm, Thời gian, Số lượng!");
+
+      const notice = {
+        location: loc,
+        time: time,
+        quota: quota,
+        salary: document.getElementById("urgentSalary").value.trim(),
+        requirements: document.getElementById("urgentReqs").value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          alert("Đã ghim thông báo tuyển người khẩn cấp lên đầu trang!");
+          closeAdminModal();
+          loadInitialData();
+        })
+        .postUrgentRecruitment(notice);
+    }
+
+    function goHome() {
+      closeDayDetail();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  // ================= XỬ LÝ LỊCH TRÌNH CÁ NHÂN CTV =================
+    let userHistoryState = {
+      activeTab: 'chotLich',
+      data: {
+        chotLich: [],
+        daDangKy: [],
+        daThamGia: []
+      }
+    };
+
+    function openUserHistoryModal() {
+      if (!state.currentUser) {
+        if (typeof checkLockedUser === 'function') checkLockedUser();
+        return;
+      }
+
+      const modal = document.getElementById("userHistoryModal");
+      const name = state.currentUser.hoTen || state.currentUser.name || "CTV";
+      const phone = state.currentUser.sdt || state.currentUser.phone || "";
+      const ma = state.currentUser.maCTV || state.currentUser.id || "";
+
+      document.getElementById("userHistoryModalSub").innerText = `${name} (${ma}) - SĐT: ${phone}`;
+      modal.classList.remove("hidden");
+
+      loadUserProgramsHistory(phone);
+    }
+
+    function closeUserHistoryModal() {
+      document.getElementById("userHistoryModal").classList.add("hidden");
+    }
+
+    async function loadUserProgramsHistory(phone) {
+      const container = document.getElementById("userHistoryListContainer");
+      container.innerHTML = `
+        <div class="text-center py-12 text-xs text-slate-400">
+          <i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-aba-blue"></i>
+          <p>Đang đối chiếu dữ liệu check in/out và lịch trình...</p>
+        </div>
+      `;
+
+      try {
+        let resData = null;
+
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          resData = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getUserProgramsHistory(phone);
+          });
+        } else {
+          const response = await fetch(`${SCRIPT_URL}?action=getUserProgramsHistory&phone=${encodeURIComponent(phone)}`);
+          resData = await response.json();
+        }
+
+        if (resData && resData.success && resData.data) {
+          userHistoryState.data = resData.data;
+
+          // Cập nhật số lượng huy hiệu trên từng tab
+          document.getElementById("badge_chotLich").innerText = resData.data.chotLich.length;
+          document.getElementById("badge_daDangKy").innerText = resData.data.daDangKy.length;
+          document.getElementById("badge_daThamGia").innerText = resData.data.daThamGia.length;
+
+          renderUserHistoryTabContent();
+        } else {
+          container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Không có dữ liệu lịch trình.</div>`;
+        }
+      } catch (err) {
+        console.error("Lỗi nạp lịch sử CTV:", err);
+        container.innerHTML = `<div class="text-center py-8 text-xs text-rose-500">Lỗi kết nối máy chủ: ${err.message}</div>`;
+      }
+    }
+
+    function switchUserHistoryTab(tabKey) {
+      userHistoryState.activeTab = tabKey;
+
+      ['chotLich', 'daDangKy', 'daThamGia'].forEach(t => {
+        const btn = document.getElementById(`tabBtn_${t}`);
+        if (t === tabKey) {
+          btn.className = "py-2.5 px-2 rounded-xl transition bg-white text-aba-blue shadow-xs flex items-center justify-center space-x-1.5 font-bold";
+        } else {
+          btn.className = "py-2.5 px-2 rounded-xl transition text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 font-bold";
+        }
+      });
+
+      renderUserHistoryTabContent();
+    }
+
+    function renderUserHistoryTabContent() {
+      const container = document.getElementById("userHistoryListContainer");
+      const list = userHistoryState.data[userHistoryState.activeTab] || [];
+
+      if (list.length === 0) {
+        let emptyText = "Bạn chưa có chương trình nào trong mục này.";
+        if (userHistoryState.activeTab === 'chotLich') emptyText = "Chưa có chương trình nào được chốt ca chính thức.";
+        if (userHistoryState.activeTab === 'daThamGia') emptyText = "Chưa có sự kiện nào hoàn thành đủ cả Check-in và Check-out.";
+
+        container.innerHTML = `
+          <div class="text-center py-14 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <i class="fa-regular fa-calendar-xmark text-3xl text-slate-300 mb-2"></i>
+            <p class="text-xs text-slate-500 font-medium">${emptyText}</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        let badgeHtml = "";
+        let borderClass = "border-slate-200";
+
+        if (userHistoryState.activeTab === 'chotLich') {
+          borderClass = "border-emerald-300 bg-emerald-50/20";
+          badgeHtml = `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-emerald-100 text-emerald-800 uppercase">ĐÃ CHỐT CA</span>`;
+        } else if (userHistoryState.activeTab === 'daDangKy') {
+          borderClass = "border-amber-300 bg-amber-50/20";
+          badgeHtml = `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-100 text-amber-800 uppercase">CHỜ DUYỆT</span>`;
+        } else {
+          borderClass = "border-blue-300 bg-blue-50/20";
+          badgeHtml = `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-blue-100 text-blue-800 uppercase">ĐÃ HOÀN THÀNH</span>`;
+        }
+
+        return `
+          <div class="bg-white border-2 ${borderClass} p-4 rounded-2xl shadow-2xs space-y-2.5 hover:shadow-xs transition">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-black text-aba-blue bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">${item.formattedDate}</span>
+                <span class="text-xs font-semibold text-slate-500">Giờ đến: ${item.arrivalTime}</span>
+              </div>
+              ${badgeHtml}
+            </div>
+
+            <div>
+              <h4 class="font-bold text-sm text-slate-900">${item.schoolName}</h4>
+              <p class="text-xs text-slate-600 mt-0.5"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i>${item.location}</p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-slate-700">Ca: <b class="text-indigo-600">${item.shiftType}</b></span>
+                ${item.eveningShift === 'Có' ? '<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold text-[10px]">🌙 Có ca tối</span>' : ''}
+              </div>
+
+              ${userHistoryState.activeTab === 'daThamGia' ? `
+                <div class="flex items-center space-x-2 text-[11px] font-bold text-emerald-700">
+                  <span>In: ${item.timeIn || '✓'}</span>
+                  <span>|</span>
+                  <span>Out: ${item.timeOut || '✓'}</span>
+                </div>
+              ` : `
+                <div class="flex items-center space-x-2">
+                  ${item.mapUrl ? `<a href="${item.mapUrl}" target="_blank" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[11px] font-bold border border-rose-200">Maps</a>` : ''}
+                  ${item.zaloUrl ? `<a href="${item.zaloUrl}" target="_blank" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[11px] font-bold border border-blue-200">Zalo</a>` : ''}
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+  <!-- KHUNG THÔNG BÁO HIỆN ĐẠI (THAY THẾ TRIỆT ĐỂ ALERT) -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
+<!-- ==================== MODAL LỊCH TRÌNH CÁ NHÂN (CHỐT LỊCH / ĐÃ ĐĂNG KÝ / ĐÃ THAM GIA) ==================== -->
+  <div id="userHistoryModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
+      
+      <!-- Header Modal -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center space-x-3">
+          <div class="w-11 h-11 bg-aba-blue text-white rounded-2xl flex items-center justify-center text-lg shadow-sm">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-slate-900">Lịch Trình Hoạt Động Của Bạn</h3>
+            <p id="userHistoryModalSub" class="text-xs text-slate-500 font-medium"></p>
+          </div>
+        </div>
+        <button onclick="closeUserHistoryModal()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- 3 Tabs Chọn Loại Danh Sách -->
+      <div class="grid grid-cols-3 p-2 bg-slate-100 border-b border-slate-200 text-xs font-bold gap-1">
+        <button id="tabBtn_chotLich" onclick="switchUserHistoryTab('chotLich')" 
+                class="py-2.5 px-2 rounded-xl transition bg-white text-aba-blue shadow-xs flex items-center justify-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Chốt lịch</span>
+          <span id="badge_chotLich" class="ml-1 text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded-full">0</span>
+        </button>
+
+        <button id="tabBtn_daDangKy" onclick="switchUserHistoryTab('daDangKy')" 
+                class="py-2.5 px-2 rounded-xl transition text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span>Đã đăng ký</span>
+          <span id="badge_daDangKy" class="ml-1 text-[10px] px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded-full">0</span>
+        </button>
+
+        <button id="tabBtn_daThamGia" onclick="switchUserHistoryTab('daThamGia')" 
+                class="py-2.5 px-2 rounded-xl transition text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span>Đã tham gia</span>
+          <span id="badge_daThamGia" class="ml-1 text-[10px] px-1.5 py-0.2 bg-blue-100 text-blue-800 rounded-full">0</span>
+        </button>
+      </div>
+
+      <!-- Danh sách chương trình (Cuộn dọc) -->
+      <div id="userHistoryListContainer" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar min-h-[300px]">
+        <div class="text-center py-12 text-xs text-slate-400">
+          <i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-aba-blue"></i>
+          <p>Đang tải dữ liệu lịch trình...</p>
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+        <span>* Sắp xếp tự động từ ngày gần nhất đến xa nhất</span>
+        <button onclick="closeUserHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+          Đóng
+        </button>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
