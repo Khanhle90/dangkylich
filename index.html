@@ -60,28 +60,60 @@
       <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
         <img src="logo.png" alt="Logo ABA" class="h-10 w-auto object-contain">
         <div class="hidden sm:block border-l border-slate-200 pl-3">
-          <h1 class="text-sm font-black text-slate-800 uppercase tracking-tight">ABA Education</h1>
+          <h1 class="text-sm font-black text-slate-800 uppercase tracking-tight">TRUNG TÂM ABA</h1>
           <p class="text-[11px] text-slate-500 font-medium">Hệ thống Điều phối Lịch CTV</p>
         </div>
       </div>
 
       <!-- GÓC PHẢI: USER PROFILE, NÚT ĐỔI TK & QUẢN TRỊ (BÁNH RĂNG) -->
+      <!-- GÓC PHẢI: USER PROFILE, CHUÔNG THÔNG BÁO, NÚT ĐỔI TK & QUẢN TRỊ -->
       <div class="flex items-center space-x-2 sm:space-x-3">
-        <!-- Thông tin User -->
-        <!-- Bấm vào Tên tài khoản sẽ mở Danh sách chương trình cá nhân -->
+        <!-- Thông tin User (Bấm vào mở lịch trình cá nhân) -->
         <div onclick="openUserHistoryModal()" class="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full border border-slate-200 cursor-pointer transition select-none" title="Xem lịch trình cá nhân">
           <i class="fa-regular fa-user text-xs text-slate-500"></i>
           <span id="headerUserName" class="text-xs font-bold text-slate-700 max-w-[120px] truncate">Đang tải...</span>
           <span id="headerUserRole" class="text-[10px] bg-aba-blue text-white px-1.5 py-0.5 rounded-md font-bold uppercase">CTV</span>
         </div>
 
-        <!-- Nút Đổi Tài Khoản (Bắt buộc nhập mật khẩu mới được thoát) -->
+        <!-- NÚT CHUÔNG THÔNG BÁO CẠNH TÊN TÀI KHOẢN -->
+        <div class="relative">
+          <button id="notiBellBtn" onclick="toggleNotiDropdown(event)" title="Thông báo hệ thống" 
+                  class="relative p-2 text-slate-600 hover:text-aba-blue hover:bg-slate-100 rounded-full transition flex items-center justify-center">
+            <i class="fa-regular fa-bell text-lg"></i>
+            <!-- Chấm đỏ báo tin chưa đọc -->
+            <span id="notiBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
+          </button>
+
+          <!-- MENU DROPDOWN THÔNG BÁO NỔI -->
+          <div id="notiDropdown" class="hidden absolute right-[-50px] sm:right-0 mt-2 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in duration-150">
+            <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-bell text-aba-blue text-sm"></i>
+                <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wide">Thông Báo Hệ Thống</h4>
+              </div>
+              <span id="notiCountText" class="text-[10px] font-black bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">0 mới</span>
+            </div>
+
+            <!-- Danh sách các tin thông báo -->
+            <div id="notiListContainer" class="max-h-[360px] overflow-y-auto p-2 space-y-2 custom-scrollbar">
+              <div class="text-center py-8 text-xs text-slate-400">Không có thông báo mới</div>
+            </div>
+
+            <div class="p-2.5 bg-slate-50 border-t border-slate-200 text-center">
+              <button onclick="markAllNotisAsRead()" class="text-[11px] font-bold text-aba-blue hover:underline">
+                Đánh dấu đã đọc tất cả
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nút Đổi Tài Khoản -->
         <button onclick="openSwitchAccountModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl border border-slate-300 font-semibold flex items-center space-x-1 transition">
           <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
           <span class="hidden sm:inline">Đổi TK</span>
         </button>
 
-        <!-- Icon Bánh Răng Quản Trị (Chỉ gồm icon ở góc trên cùng bên phải) -->
+        <!-- Icon Bánh Răng Quản Trị -->
         <button id="adminGearBtn" onclick="openAdminModal()" title="Bảng điều khiển Quản trị" class="p-2 text-slate-500 hover:text-aba-blue hover:bg-slate-100 rounded-full transition">
           <i class="fa-solid fa-gear text-lg"></i>
         </button>
@@ -103,8 +135,18 @@
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <span>Chương trình đã chốt</span>
         </h2>
-        <span class="text-xs text-slate-500">Thẻ xanh: Đủ người | Thẻ đỏ: Thiếu người</span>
-      </div>
+<!-- CHÚ THÍCH MÀU TRỰC QUAN THAY CHO CHỮ -->
+        <div class="flex items-center space-x-3 text-xs font-semibold">
+          <span class="flex items-center space-x-1.5 text-slate-600">
+            <span class="w-3 h-3 rounded-md bg-emerald-500 shrink-0 shadow-2xs"></span>
+            <span>Đủ người</span>
+          </span>
+          <span class="text-slate-300">|</span>
+          <span class="flex items-center space-x-1.5 text-slate-600">
+            <span class="w-3 h-3 rounded-md bg-rose-500 shrink-0 shadow-2xs"></span>
+            <span>Thiếu người</span>
+          </span>
+        </div>      </div>
       <div id="finalizedGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
     </section>
 
@@ -121,11 +163,11 @@
           <div class="flex items-center bg-slate-200/70 p-1 rounded-xl text-xs font-bold">
             <button id="btnViewWeek" onclick="switchCalendarView('week')" 
                     class="px-3 py-1.5 rounded-lg transition bg-white text-aba-blue shadow-xs">
-              <i class="fa-solid fa-calendar-week mr-1"></i>Xem tuần
+              <i class="fa-solid fa-calendar-week mr-1"></i>Lịch tuần
             </button>
             <button id="btnViewMonth" onclick="switchCalendarView('month')" 
                     class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900">
-              <i class="fa-solid fa-calendar-days mr-1"></i>Xem tháng
+              <i class="fa-solid fa-calendar-days mr-1"></i>Lịch tháng
             </button>
           </div>
 
@@ -145,10 +187,10 @@
       <!-- Chú thích màu thẻ -->
       <div class="flex flex-wrap items-center gap-3 text-xs bg-white p-3 rounded-xl border border-slate-200 text-slate-600">
         <span class="font-bold text-slate-800">Quy ước màu thẻ:</span>
-        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-amber-400"></span><span>Chỉ sáng (Thẻ vàng)</span></span>
-        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-sky-500"></span><span>Chỉ chiều (Thẻ xanh)</span></span>
-        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-rose-500"></span><span>Tuyển cả ngày (Thẻ đỏ)</span></span>
-        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-800 text-amber-300 text-[10px] flex items-center justify-center">🌙</span><span>Tuyển buổi tối (Kèm trăng khuyết)</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-amber-400"></span><span>Buổi sáng</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-sky-500"></span><span>Buổi chiều</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-rose-500"></span><span>Cả ngày</span></span>
+        <span class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-800 text-amber-300 text-[10px] flex items-center justify-center">🌙</span><span>Buổi tối</span></span>
       </div>
 
       <!-- Lưới 7 ngày trong tuần -->
@@ -307,7 +349,6 @@
   </div>
 
   <!-- ==================== MODAL TẠO CHƯƠNG TRÌNH ==================== -->
-  <!-- ==================== MODAL TẠO CHƯƠNG TRÌNH ==================== -->
   <div id="createProgModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs hidden">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar">
       <div class="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
@@ -403,6 +444,93 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL SỬA THÔNG TIN CHƯƠNG TRÌNH ==================== -->
+  <div id="editProgModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar animate-in fade-in zoom-in duration-150">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+        <div class="flex items-center space-x-2 text-amber-600">
+          <i class="fa-regular fa-pen-to-square text-lg"></i>
+          <h3 class="text-base font-extrabold text-slate-800">Sửa thông tin chương trình</h3>
+        </div>
+        <button onclick="closeEditProgModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <input type="hidden" id="editProgId">
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ngày thực hiện *</label>
+          <div class="relative flex items-center">
+            <input type="text" id="editProgDateDisplay" placeholder="dd/mm/yyyy" readonly
+                   class="w-full border border-slate-200 rounded-xl p-2.5 pr-10 text-xs font-bold text-slate-800 bg-white shadow-xs focus:outline-none">
+            <span class="absolute right-3.5 text-slate-400 pointer-events-none">
+              <i class="fa-regular fa-calendar text-sm"></i>
+            </span>
+            <input type="date" id="editProgDate" onchange="updateEditProgDateDisplay(this.value)"
+                   class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên trường / Chương trình *</label>
+          <input type="text" id="editProgSchool" class="w-full border rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-aba-blue">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Địa điểm *</label>
+          <input type="text" id="editProgLocation" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-aba-blue">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Thời gian có mặt *</label>
+            <input type="text" id="editProgArrivalTime" class="w-full border rounded-xl p-2.5 text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ekip phụ trách *</label>
+            <input type="text" id="editProgLeaderTeam" class="w-full border rounded-xl p-2.5 text-xs font-semibold">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Link Google Maps</label>
+          <input type="url" id="editProgMapUrl" class="w-full border rounded-xl p-2.5 text-xs">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Link nhóm Zalo chương trình</label>
+          <input type="url" id="editProgZaloUrl" class="w-full border rounded-xl p-2.5 text-xs">
+        </div>
+
+        <div class="p-3 bg-slate-50 border rounded-2xl space-y-2">
+          <span class="block font-bold text-slate-700">Chỉ tiêu nhân sự tuyển dụng:</span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Cả ngày</label>
+              <input type="number" id="editQuotaDay" min="0" class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Buổi sáng</label>
+              <input type="number" id="editQuotaMorning" min="0" class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Buổi chiều</label>
+              <input type="number" id="editQuotaAfternoon" min="0" class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-500 mb-1">Buổi tối</label>
+              <input type="number" id="editQuotaEvening" min="0" class="w-full border rounded-lg p-1.5 text-center font-bold">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end space-x-2">
+        <button onclick="closeEditProgModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold">Hủy</button>
+        <button onclick="submitEditProgram()" id="btnSaveEditProg" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition">Lưu Thay Đổi</button>
+      </div>
+    </div>
+  </div>
 <!-- ==================== MODAL NHẬP MÃ BẢO MẬT QUẢN TRỊ ==================== -->
   <div id="adminPinAuthModal" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-150">
@@ -416,7 +544,7 @@
 
       <div class="text-left space-y-1.5">
         <label class="block text-xs font-bold text-slate-700">Mã số xác thực Quản trị:</label>
-        <input type="password" id="adminSecretPinInput" placeholder="Nhập mã số quản trị (mặc định: 1)" 
+        <input type="password" id="adminSecretPinInput" placeholder="Nhập mã số quản trị của bạn" 
                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 font-bold text-slate-800 text-center tracking-widest">
         <p id="adminPinError" class="text-xs text-rose-600 font-semibold hidden mt-1"></p>
       </div>
@@ -512,11 +640,13 @@
       currentUser: null,
       programs: [],
       urgentNotices: [],
+      transferRequests: [],
+      adminNotices: [], // Lưu các thông báo dành cho Quản trị/Điều hành
       weekOffset: 0,
       monthOffset: 0,
       calendarView: 'week',
       activeDayStr: null,
-      activeProgramId: null, // Lưu ID chương trình đang xem chi tiết
+      activeProgramId: null,
       pendingRegData: null
     };
 
@@ -927,6 +1057,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
         if (resData) {
           state.programs = resData.programs || [];
           state.urgentNotices = resData.urgentNotices || [];
+          state.transferRequests = resData.transferRequests || [];
+          state.adminNotices = resData.adminNotices || []; // Nhận danh sách thông báo rút lịch
           if (state.currentUser && resData.userRole) {
             state.currentUser.role = resData.userRole;
             updateHeaderProfile();
@@ -944,6 +1076,9 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       renderUrgentNotices();
       renderFinalizedSection();
       renderCalendarView();
+      updateSystemNotifications();
+      checkAndShowForcedNotices();
+      checkCTVTransferOffer(); // <-- THÊM DÒNG NÀY ĐỂ BẬT CỬA SỔ PHẢN HỒI KHI CTV MỞ MÁY
       if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
     }
 
@@ -975,6 +1110,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       });
     }
 
+    // ---------------- PHẦN TRÊN: CHƯƠNG TRÌNH ĐÃ CHỐT (BẤM VÀO MỞ TRỰC TIẾP CHƯƠNG TRÌNH) ----------------
+    // ---------------- PHẦN TRÊN: CHƯƠNG TRÌNH ĐÃ CHỐT (HIỂN THỊ CẢ SỐ LƯỢNG DƯ RA) ----------------
     function renderFinalizedSection() {
       const grid = document.getElementById("finalizedGrid");
       grid.innerHTML = "";
@@ -986,26 +1123,40 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       }
 
       finalized.forEach(p => {
-        const approvedCount = (p.registrations || []).filter(r => r.isApproved).length;
-        const isFull = approvedCount >= p.totalNeeded;
+        const regs = p.registrations || [];
+        const approvedCount = regs.filter(r => r.isApproved).length;
+        const totalNeeded = Number(p.totalNeeded || 0);
+        // Tính số lượng đăng ký dư thừa vượt quá chỉ tiêu
+        const surplusCount = Math.max(0, regs.length - approvedCount);
+        const isFull = approvedCount >= totalNeeded;
         const card = document.createElement("div");
+
         // Đủ người: Xanh lá cây; Thiếu người: Màu đỏ
         card.className = isFull 
-          ? "bg-emerald-500 text-white p-3.5 rounded-2xl shadow-xs cursor-pointer flex items-center justify-between"
-          : "bg-rose-500 text-white p-3.5 rounded-2xl shadow-xs cursor-pointer flex items-center justify-between";
-        card.onclick = () => openDayDetail(p.dateStr);
+          ? "bg-emerald-500 hover:bg-emerald-600 text-white p-3.5 rounded-2xl shadow-xs cursor-pointer flex items-center justify-between transition active:scale-[0.99]"
+          : "bg-rose-500 hover:bg-rose-600 text-white p-3.5 rounded-2xl shadow-xs cursor-pointer flex items-center justify-between transition active:scale-[0.99]";
+
+        card.onclick = () => {
+          state.activeDayStr = p.dateStr;
+          openProgramDetail(p.id);
+        };
+
         card.innerHTML = `
           <div>
             <div class="flex items-center space-x-2">
               <span class="text-[10px] font-black bg-white/20 px-2 py-0.5 rounded-md">${p.formattedDate}</span>
-              <span class="text-xs font-bold">${isFull ? "ĐỦ NGƯỜI" : `THIẾU ${p.totalNeeded - approvedCount} CTV`}</span>
+              <span class="text-xs font-bold">${isFull ? "ĐỦ NGƯỜI" : `THIẾU ${totalNeeded - approvedCount} CTV`}</span>
+              ${surplusCount > 0 ? `<span class="text-[10px] font-black bg-amber-300 text-slate-900 px-2 py-0.5 rounded-md shadow-2xs">DƯ ${surplusCount} ĐK</span>` : ''}
             </div>
             <h4 class="font-bold text-sm mt-1 truncate max-w-[200px]">${p.schoolName}</h4>
             <p class="text-[11px] text-white/80">${p.location}</p>
           </div>
           <div class="text-right">
-            <span class="text-lg font-black">${approvedCount}/${p.totalNeeded}</span>
-            <span class="block text-[10px] text-white/80">CTV</span>
+            <div class="flex items-baseline justify-end space-x-1">
+              <span class="text-lg font-black">${approvedCount}/${totalNeeded}</span>
+              ${surplusCount > 0 ? `<span class="text-xs font-extrabold text-amber-200" title="Đăng ký dư">(+${surplusCount})</span>` : ''}
+            </div>
+            <span class="block text-[10px] text-white/80">${surplusCount > 0 ? `Dư ${surplusCount} ĐK` : 'CTV'}</span>
           </div>
         `;
         grid.appendChild(card);
@@ -1068,21 +1219,39 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       }
     }
 
-    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ 1 THÁNG ----------------
-    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ BẢNG THÁNG CHUẨN MA TRẬN 7 CỘT ----------------
-    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ BẢNG THÁNG GỌN GÀNG TRÊN ĐIỆN THOẠI (KHÔNG TRƯỢT NGANG) ----------------
+    // ---------------- TÍNH ÂM LỊCH CHUẨN XÁC THEO CHU KỲ THIÊN VĂN ----------------
+    function getVietnameseLunarDate(dateObj) {
+      try {
+        const formatter = new Intl.DateTimeFormat('en-US-u-ca-chinese', {
+          day: 'numeric',
+          month: 'numeric'
+        });
+        const parts = formatter.formatToParts(dateObj);
+        let day = 1;
+        let month = 1;
+        for (const p of parts) {
+          if (p.type === 'day') day = parseInt(p.value, 10);
+          if (p.type === 'month') month = parseInt(p.value, 10);
+        }
+        return { day, month };
+      } catch (err) {
+        return { day: dateObj.getDate(), month: dateObj.getMonth() + 1 };
+      }
+    }
+    // ---------------- CHẾ ĐỘ 2: HIỂN THỊ 1 THÁNG (TỐI ƯU GIAO DIỆN ĐIỆN THOẠI) ----------------
     function renderCalendarMonth() {
       const grid = document.getElementById("calendarGrid");
-      // Bỏ min-w-[720px] và overflow-x-auto để bảng ôm trọn 100% chiều rộng điện thoại
       grid.className = "w-full select-none";
       grid.innerHTML = "";
 
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const viewDate = new Date(today.getFullYear(), today.getMonth() + state.monthOffset, 1);
       const year = viewDate.getFullYear();
       const month = viewDate.getMonth(); // 0 -> 11
 
-      // Cập nhật tiêu đề THÁNG MM / YYYY chữ xanh đậm nổi bật
+      // Cập nhật tiêu đề THÁNG MM / YYYY
       const labelEl = document.getElementById("currentCalendarLabel");
       if (labelEl) {
         labelEl.innerHTML = `<span class="text-blue-700 font-black uppercase text-xs sm:text-sm tracking-wider">Tháng ${month + 1} / ${year}</span>`;
@@ -1117,55 +1286,104 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       // Ô xám nhạt cho các ngày trống trước ngày mùng 1
       for (let i = 0; i < startDayIndex; i++) {
         const emptyCell = document.createElement("div");
-        emptyCell.className = "bg-slate-100/60 rounded-xl min-h-[52px] sm:min-h-[64px]";
+        emptyCell.className = "bg-slate-100/60 rounded-xl min-h-[56px] sm:min-h-[70px]";
         daysGrid.appendChild(emptyCell);
       }
 
       // Render từng ngày trong tháng
       for (let day = 1; day <= totalDaysInMonth; day++) {
         const d = new Date(year, month, day);
+        d.setHours(0, 0, 0, 0);
+
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
-        // Tính ngày âm lịch (mùng 1 hoặc rằm hiện dd/mm)
-        const lunarDay = ((day + 14) % 30) + 1;
-        const lunarMonth = month + 1;
-        const lunarText = (lunarDay === 1 || lunarDay === 15) ? `${lunarDay}/${lunarMonth}` : `${lunarDay}`;
+        const isPast = d.getTime() < today.getTime();
+        const isToday = d.getTime() === today.getTime();
 
-        const dayProgs = state.programs.filter(p => p.dateStr === dateStr);
-        const hasProgs = dayProgs.length > 0;
+        // Tính ngày âm lịch chuẩn
+        const lunar = (typeof getVietnameseLunarDate === 'function') 
+          ? getVietnameseLunarDate(d) 
+          : { day: ((day + 14) % 30) + 1, month: month + 1 };
+        const lunarText = (lunar.day === 1 || lunar.day === 15) ? `${lunar.day}/${lunar.month}` : `${lunar.day}`;
 
-        const cell = document.createElement("div");
-        cell.onclick = () => openDayDetail(dateStr);
+        // Quét tất cả chương trình và ca làm diễn ra trong ngày
+        const progs = state.programs.filter(p => p.dateStr === dateStr);
+        let totalNeeded = 0;
+        let totalRegistered = 0;
+        let hasDayShift = false;
+        let hasMorningShift = false;
+        let hasAfternoonShift = false;
+        let hasEveningShift = false;
 
-        if (hasProgs) {
-          // Thẻ CÓ sự kiện: Nền hồng nhạt, viền đỏ, số lượng màu đỏ góc dưới
-          const totalQuota = dayProgs.reduce((sum, p) => sum + (Number(p.totalNeeded) || 0), 0);
-          const displayCount = totalQuota > 0 ? (totalQuota >= 100 ? totalQuota.toLocaleString('vi-VN') + ' hs' : totalQuota + ' CTV') : dayProgs.length + ' sk';
+        progs.forEach(p => {
+          const qDay = Number(p.quotaDay || 0);
+          const qMorn = Number(p.quotaMorning || 0);
+          const qAft = Number(p.quotaAfternoon || 0);
+          const qEve = Number(p.quotaEvening || 0);
+          totalNeeded += Number(p.totalNeeded || (qDay + qMorn + qAft));
+          totalRegistered += (p.registrations || []).length;
 
-          cell.className = "bg-rose-50/70 border-2 border-rose-300 hover:border-rose-400 rounded-xl p-1 sm:p-1.5 min-h-[52px] sm:min-h-[64px] flex flex-col justify-between cursor-pointer transition shadow-xs active:scale-95";
-          cell.innerHTML = `
-            <div class="flex items-start justify-between leading-none">
-              <span class="font-black text-xs sm:text-sm text-slate-800">${day}</span>
-              <span class="text-[8.5px] sm:text-[10px] font-semibold text-slate-400">${lunarText}</span>
-            </div>
-            <div class="text-right text-[9px] sm:text-xs font-black text-rose-600 leading-none truncate">
-              ${displayCount}
-            </div>
-          `;
+          if (qDay > 0) hasDayShift = true;
+          if (qMorn > 0) hasMorningShift = true;
+          if (qAft > 0) hasAfternoonShift = true;
+          if (qEve > 0 || p.hasEvening) hasEveningShift = true;
+        });
+
+        const hasPrograms = progs.length > 0;
+        const isShortage = totalRegistered < totalNeeded;
+
+        // Quy định màu sắc viền, nền và trạng thái
+        let cardStyle = "";
+        let numberColor = "text-slate-800";
+        let statusBadgeHtml = "";
+
+        if (isPast) {
+          // Ngày đã qua: Bôi màu xám nhạt, làm mờ nhẹ
+          cardStyle = "bg-slate-100/90 border-slate-200 text-slate-400 opacity-60";
+          numberColor = "text-slate-500";
+          statusBadgeHtml = hasPrograms 
+            ? `<span class="text-[9px] sm:text-[11px] font-bold text-slate-500 truncate">${totalNeeded} CTV</span>`
+            : `<span class="text-[9px] sm:text-[11px] font-semibold text-slate-400">Trống</span>`;
+        } else if (hasPrograms) {
+          if (isShortage) {
+            // Thiếu người: Viền đỏ, nền hồng nhạt
+            cardStyle = "bg-rose-50/60 border-2 border-rose-400 hover:border-rose-500";
+            statusBadgeHtml = `<span class="text-[9px] sm:text-[11px] font-black text-rose-600 truncate">${totalNeeded} CTV</span>`;
+          } else {
+            // Đủ người: Viền xanh lá, nền xanh nhạt
+            cardStyle = "bg-emerald-50/60 border-2 border-emerald-500 hover:border-emerald-600";
+            statusBadgeHtml = `<span class="text-[9px] sm:text-[11px] font-black text-emerald-700 truncate">${totalNeeded} CTV</span>`;
+          }
         } else {
-          // Thẻ TRỐNG: Nền trắng, viền xanh lá, chữ "Trống" màu xanh góc dưới
-          cell.className = "bg-white border-2 border-emerald-400 hover:border-emerald-500 rounded-xl p-1 sm:p-1.5 min-h-[52px] sm:min-h-[64px] flex flex-col justify-between cursor-pointer transition shadow-xs active:scale-95";
-          cell.innerHTML = `
-            <div class="flex items-start justify-between leading-none">
-              <span class="font-black text-xs sm:text-sm text-slate-800">${day}</span>
-              <span class="text-[8.5px] sm:text-[10px] font-semibold text-slate-400">${lunarText}</span>
-            </div>
-            <div class="text-right text-[9px] sm:text-xs font-black text-emerald-600 leading-none">
-              Trống
-            </div>
-          `;
+          // Ngày trống: Viền xanh lá cây, nền trắng
+          cardStyle = "bg-white border-2 border-emerald-400 hover:border-emerald-500";
+          statusBadgeHtml = `<span class="text-[9px] sm:text-[11px] font-bold text-emerald-600">Trống</span>`;
         }
 
+        // Hàng 4 hạt màu cố định (Cả ngày - Sáng - Chiều - Tối)
+        // Dùng 'invisible' khi không có ca để giữ nguyên vị trí cố định
+        const dotsHtml = `
+          <div class="flex items-center justify-center gap-1 sm:gap-1.5 my-0.5 sm:my-1 h-2">
+            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${hasDayShift ? 'bg-rose-500' : 'invisible'}" title="Cả ngày"></span>
+            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${hasMorningShift ? 'bg-amber-400' : 'invisible'}" title="Buổi sáng"></span>
+            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${hasAfternoonShift ? 'bg-sky-500' : 'invisible'}" title="Buổi chiều"></span>
+            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${hasEveningShift ? 'bg-slate-800' : 'invisible'}" title="Buổi tối"></span>
+          </div>
+        `;
+
+        const cell = document.createElement("div");
+        cell.className = `min-h-[56px] sm:min-h-[72px] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl transition cursor-pointer flex flex-col justify-between select-none shadow-2xs active:scale-95 ${cardStyle} ${isToday ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`;
+        cell.onclick = () => openDayDetail(dateStr);
+
+        cell.innerHTML = `
+          <div class="flex items-start justify-between leading-none">
+            <span class="text-xs sm:text-sm font-black ${numberColor}">${day}</span>
+            <span class="text-[8px] sm:text-[10px] text-slate-400 font-medium">${lunarText}</span>
+          </div>
+          ${dotsHtml}
+          <div class="text-center leading-none">
+            ${statusBadgeHtml}
+          </div>
+        `;
         daysGrid.appendChild(cell);
       }
 
@@ -1174,7 +1392,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       const trailingCells = (7 - (totalCells % 7)) % 7;
       for (let i = 0; i < trailingCells; i++) {
         const emptyCell = document.createElement("div");
-        emptyCell.className = "bg-slate-100/60 rounded-xl min-h-[52px] sm:min-h-[64px]";
+        emptyCell.className = "bg-slate-100/60 rounded-xl min-h-[56px] sm:min-h-[70px]";
         daysGrid.appendChild(emptyCell);
       }
 
@@ -1184,10 +1402,13 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
 
     // Xây dựng thẻ từng ngày
     function buildDayCalendarCard(d, isMonthView) {
-      const dateStr = d.toISOString().split("T")[0];
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
       const dayName = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][d.getDay()];
-      const lunarDay = ((d.getDate() + 14) % 30) + 1;
-      const lunarMonth = d.getMonth() + 1;
+      const lunar = getVietnameseLunarDate(d);
 
       const dayProgs = state.programs.filter(p => p.dateStr === dateStr);
       const col = document.createElement("div");
@@ -1229,8 +1450,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
             <span class="text-[11px] font-black ${d.getDay() === 0 ? 'text-rose-500' : 'text-slate-400'} uppercase">${dayName}</span>
             <span class="text-sm font-black text-slate-800 ml-1">${d.getDate()}</span>
           </div>
-          <span class="text-[9.5px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">Âm: ${lunarDay}/${lunarMonth}</span>
-        </div>
+<span class="text-[9.5px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">Âm: ${lunar.day}/${lunar.month}</span>        </div>
         <div class="flex-1 space-y-1">
           ${progCardsHtml || (isMonthView ? '' : '<span class="text-[10px] text-slate-300 italic block py-3 text-center">Chưa có lịch</span>')}
         </div>
@@ -1265,89 +1485,199 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
     }
 
     // ---------------- THÔNG TIN NGÀY: HIỂN THỊ CÁC THẺ CHƯƠNG TRÌNH GỌN & NÚT XÓA ----------------
+    // ---------------- THÔNG TIN NGÀY: DANH SÁCH CHƯƠNG TRÌNH TRƯỚC, THEO DÕI ĐIỀU CHUYỂN DƯỚI ----------------
     function renderDayPrograms(dateStr) {
       const container = document.getElementById("dayProgramsList");
       container.innerHTML = "";
       const progs = state.programs.filter(p => p.dateStr === dateStr);
 
+      // 1. HIỂN THỊ DANH SÁCH CÁC CHƯƠNG TRÌNH TRONG NGÀY (NẰM TRÊN)
       if (progs.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-14 bg-white rounded-3xl border border-slate-200 p-6 space-y-3">
-            <div class="w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mx-auto text-3xl">
-              <i class="fa-regular fa-calendar-xmark"></i>
-            </div>
-            <div>
-              <h4 class="font-bold text-slate-700 text-sm">Chưa có sự kiện nào trong ngày này</h4>
-              <p class="text-xs text-slate-400 mt-1">Bấm nút bên dưới để tạo chương trình mới</p>
-            </div>
-            <div class="pt-2">
-              <button onclick="openCreateProgramModal('${dateStr}')" 
-                      class="px-5 py-2.5 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow-md inline-flex items-center space-x-2 transition">
-                <i class="fa-solid fa-plus"></i>
-                <span>Tạo chương trình cho ngày này</span>
-              </button>
-            </div>
+        const emptyBox = document.createElement("div");
+        emptyBox.className = "text-center py-14 bg-white rounded-3xl border border-slate-200 p-6 space-y-3";
+        emptyBox.innerHTML = `
+          <div class="w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+            <i class="fa-regular fa-calendar-xmark"></i>
           </div>
-        `;
-        return;
-      }
-
-      progs.forEach(p => {
-        const regs = p.registrations || [];
-        const isRegistered = state.currentUser && regs.some(r => {
-          const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
-          const myPhone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
-          return rPhone === myPhone;
-        });
-        
-        const quotaDay = Number(p.quotaDay || 0);
-        const quotaMorning = Number(p.quotaMorning || 0);
-        const quotaAfternoon = Number(p.quotaAfternoon || 0);
-        const totalNeeded = Number(p.totalNeeded || (quotaDay + quotaMorning + quotaAfternoon));
-        const regCount = regs.length;
-        const isFull = regCount >= totalNeeded && totalNeeded > 0;
-
-        const card = document.createElement("div");
-        card.className = "bg-white border-2 border-slate-200 hover:border-aba-blue rounded-3xl p-4 sm:p-5 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group";
-        card.onclick = () => openProgramDetail(p.id);
-
-        card.innerHTML = `
-          <div class="space-y-1.5 flex-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="text-xs font-black text-aba-blue bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">${p.formattedDate}</span>
-              <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>Có mặt: ${p.arrivalTime}</span>
-              ${p.hasEvening ? '<span class="text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-lg">🌙 Có ca tối</span>' : ''}
-              ${isRegistered ? '<span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-0.5 rounded-lg">✓ Bạn đã đăng ký</span>' : ''}
-            </div>
-            <h3 class="text-base sm:text-lg font-bold text-slate-900 group-hover:text-aba-blue transition leading-snug">${p.schoolName}</h3>
-            <p class="text-xs text-slate-600"><i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i>${p.location}</p>
+          <div>
+            <h4 class="font-bold text-slate-700 text-sm">Chưa có sự kiện nào trong ngày này</h4>
+            <p class="text-xs text-slate-400 mt-1">Bấm nút bên dưới để tạo chương trình mới</p>
           </div>
-
-          <div class="flex items-center justify-between sm:justify-end gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-            <div class="text-left sm:text-right mr-1">
-              <span class="block text-[11px] font-bold ${isFull ? 'text-emerald-600' : 'text-rose-600'}">
-                ${isFull ? 'Đủ chỉ tiêu' : `Thiếu ${Math.max(0, totalNeeded - regCount)} CTV`}
-              </span>
-              <span class="text-xs font-extrabold text-slate-700">Đã ĐK: ${regCount}/${totalNeeded}</span>
-            </div>
-
-            <!-- NÚT XÓA DÀNH CHO QUẢN TRỊ VIÊN -->
-            ${checkIsManager() ? `
-              <button onclick="event.stopPropagation(); confirmDeleteProgram('${p.id}', '${p.schoolName}')" 
-                      class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold border border-rose-200 transition" 
-                      title="Xóa chương trình & file Drive">
-                <i class="fa-regular fa-trash-can text-sm"></i>
-              </button>
-            ` : ''}
-
-            <button onclick="openProgramDetail('${p.id}')" class="px-3.5 py-2 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow-xs flex items-center space-x-1 transition whitespace-nowrap">
-              <span>Đăng ký ca</span>
-              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          <div class="pt-2">
+            <button onclick="openCreateProgramModal('${dateStr}')" 
+                    class="px-5 py-2.5 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow-md inline-flex items-center space-x-2 transition">
+              <i class="fa-solid fa-plus"></i>
+              <span>Tạo chương trình cho ngày này</span>
             </button>
           </div>
         `;
-        container.appendChild(card);
-      });
+        container.appendChild(emptyBox);
+      } else {
+        progs.forEach(p => {
+          const regs = p.registrations || [];
+          const isRegistered = state.currentUser && regs.some(r => {
+            const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+            const myPhone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+            return rPhone === myPhone;
+          });
+          
+          const quotaDay = Number(p.quotaDay || 0);
+          const quotaMorning = Number(p.quotaMorning || 0);
+          const quotaAfternoon = Number(p.quotaAfternoon || 0);
+          const totalNeeded = Number(p.totalNeeded || (quotaDay + quotaMorning + quotaAfternoon));
+          const regCount = regs.length;
+          const isFull = regCount >= totalNeeded && totalNeeded > 0;
+
+          const card = document.createElement("div");
+          card.className = "bg-white border-2 border-slate-200 hover:border-aba-blue rounded-3xl p-4 sm:p-5 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group";
+          card.onclick = () => openProgramDetail(p.id);
+
+          card.innerHTML = `
+            <div class="space-y-1.5 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-black text-aba-blue bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">${p.formattedDate}</span>
+                <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>Có mặt: ${p.arrivalTime}</span>
+                ${p.hasEvening ? '<span class="text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-lg">🌙 Có ca tối</span>' : ''}
+                ${isRegistered ? '<span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-0.5 rounded-lg">✓ Bạn đã đăng ký</span>' : ''}
+              </div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 group-hover:text-aba-blue transition leading-snug">${p.schoolName}</h3>
+              <p class="text-xs text-slate-600"><i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i>${p.location}</p>
+              <!-- CHI TIẾT SỐ LƯỢNG TUYỂN TỪNG CA -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-1.5 text-xs">
+                <span class="text-slate-400 text-[11px] font-semibold mr-0.5">Chỉ tiêu tuyển:</span>
+                ${Number(p.quotaDay) > 0 ? `
+                  <span class="inline-flex items-center space-x-1 bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    <span>Cả ngày: ${p.quotaDay} CTV</span>
+                  </span>` : ''}
+                ${Number(p.quotaMorning) > 0 ? `
+                  <span class="inline-flex items-center space-x-1 bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span>Sáng: ${p.quotaMorning} CTV</span>
+                  </span>` : ''}
+                ${Number(p.quotaAfternoon) > 0 ? `
+                  <span class="inline-flex items-center space-x-1 bg-sky-50 text-sky-800 border border-sky-200 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                    <span>Chiều: ${p.quotaAfternoon} CTV</span>
+                  </span>` : ''}
+                ${Number(p.quotaEvening) > 0 ? `
+                  <span class="inline-flex items-center space-x-1 bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-800"></span>
+                    <span>Tối: ${p.quotaEvening} CTV</span>
+                  </span>` : ''}
+                ${(!p.quotaDay && !p.quotaMorning && !p.quotaAfternoon && !p.quotaEvening) ? `
+                  <span class="text-slate-500 text-[11px] font-bold">Tổng cần: ${totalNeeded} CTV</span>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between sm:justify-end gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+              <div class="text-left sm:text-right mr-1">
+                <span class="block text-[11px] font-bold ${isFull ? 'text-emerald-600' : 'text-rose-600'}">
+                  ${isFull ? 'Đủ chỉ tiêu' : `Thiếu ${Math.max(0, totalNeeded - regCount)} CTV`}
+                </span>
+                <span class="text-xs font-extrabold text-slate-700">Đã ĐK: ${regCount}/${totalNeeded}</span>
+              </div>
+
+              <!-- NÚT SỬA & XÓA CHO QUẢN TRỊ VÀ ĐIỀU HÀNH -->
+              ${checkIsManager() ? `
+                <button onclick="event.stopPropagation(); openEditProgramModal('${p.id}')" 
+                        class="px-2.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl text-xs font-bold border border-amber-200 transition" 
+                        title="Sửa thông tin chương trình">
+                  <i class="fa-regular fa-pen-to-square text-sm"></i>
+                </button>
+                <button onclick="event.stopPropagation(); confirmDeleteProgram('${p.id}', '${p.schoolName}')" 
+                        class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold border border-rose-200 transition" 
+                        title="Xóa chương trình & file Drive">
+                  <i class="fa-regular fa-trash-can text-sm"></i>
+                </button>
+              ` : ''}
+
+              <button onclick="openProgramDetail('${p.id}')" class="px-3.5 py-2 bg-aba-blue hover:bg-aba-dark text-white text-xs font-bold rounded-xl shadow-xs flex items-center space-x-1 transition whitespace-nowrap">
+                <span>Đăng ký ca</span>
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      // 2. BẢNG THEO DÕI ĐỀ NGHỊ ĐIỀU CHUYỂN (ĐƯỢC ĐƯA XUỐNG DƯỚI CÙNG DANH SÁCH CHƯƠNG TRÌNH)
+      if (typeof checkIsManager === 'function' && checkIsManager()) {
+        const pendingOrRejectedRequests = (state.transferRequests || []).filter(tr => 
+          tr.dateStr === dateStr && (tr.status === "PENDING" || tr.status === "REJECTED")
+        );
+
+        if (pendingOrRejectedRequests.length > 0) {
+          const transferSection = document.createElement("div");
+          transferSection.className = "bg-white border-2 border-indigo-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3 mt-5";
+          
+          let tableRows = pendingOrRejectedRequests.map((tr, idx) => {
+            const isPending = tr.status === "PENDING";
+            const statusBadge = isPending 
+              ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full font-bold text-[10px] animate-pulse">Chưa xác nhận</span>`
+              : `<span class="bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full font-bold text-[10px]">Từ chối</span>`;
+
+            return `
+              <tr class="border-b border-slate-100 text-xs hover:bg-slate-50 transition">
+                <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
+                <td class="p-2.5 font-bold text-slate-900">${tr.userName}</td>
+                <td class="p-2.5 font-mono text-slate-600">${tr.userPhone}</td>
+                <td class="p-2.5 text-center"><span class="bg-slate-100 px-2 py-0.5 rounded font-bold text-[11px]">${tr.shiftType}</span></td>
+                <td class="p-2.5 text-center">${tr.eveningShift === "Có" ? "🌙 Có" : "-"}</td>
+                <td class="p-2.5 text-center font-bold text-indigo-600">${tr.score || 80}đ</td>
+                <td class="p-2.5">${tr.major || "HDV"}</td>
+                <!-- Chương trình ban đầu: Thẻ vàng -->
+                <td class="p-2.5">
+                  <span class="inline-block bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-bold text-[11px]">
+                    ${tr.fromSchoolName}
+                  </span>
+                </td>
+                <!-- Chương trình mới: Thẻ xanh -->
+                <td class="p-2.5">
+                  <span class="inline-block bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-xl font-bold text-[11px]">
+                    ${tr.toSchoolName}
+                  </span>
+                </td>
+                <td class="p-2.5 text-center">${statusBadge}</td>
+              </tr>
+            `;
+          }).join('');
+
+          transferSection.innerHTML = `
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-indigo-600 animate-ping"></span>
+                <h4 class="font-extrabold text-sm text-slate-900 uppercase tracking-tight">Theo dõi đề nghị điều chuyển nhân sự</h4>
+              </div>
+              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-lg border border-indigo-200">
+                ${pendingOrRejectedRequests.length} nhân sự chưa hoàn tất
+              </span>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl custom-scrollbar">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 font-bold border-b">
+                    <th class="p-2.5 text-center w-8">STT</th>
+                    <th class="p-2.5">Họ và tên</th>
+                    <th class="p-2.5">SĐT</th>
+                    <th class="p-2.5 text-center">Buổi</th>
+                    <th class="p-2.5 text-center">Ca tối</th>
+                    <th class="p-2.5 text-center">Điểm</th>
+                    <th class="p-2.5">Nghiệp vụ</th>
+                    <th class="p-2.5">Chương trình ban đầu</th>
+                    <th class="p-2.5">Chương trình mới</th>
+                    <th class="p-2.5 text-center">Tình trạng</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+            </div>
+          `;
+          container.appendChild(transferSection);
+        }
+      }
     }
 
     // ---------------- ĐIỀU KHIỂN MÀN HÌNH ĐĂNG KÝ CHI TIẾT FULL MÀN HÌNH ----------------
@@ -1365,7 +1695,20 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
         ${prog.mapUrl ? `<a href="${prog.mapUrl}" target="_blank" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold">Maps</a>` : ""}
         ${prog.zaloUrl ? `<a href="${prog.zaloUrl}" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold">Zalo</a>` : ""}
         ${isManager && !prog.isFinalized ? `<button onclick="confirmFinalizeProgram('${prog.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow">Chốt DS</button>` : ""}
-        ${isManager ? `<button onclick="confirmDeleteProgram('${prog.id}', '${prog.schoolName}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1"><i class="fa-regular fa-trash-can mr-1"></i><span>Xóa</span></button>` : ""}
+        ${isManager ? `
+          <button onclick="syncProgramFromSheet('${prog.id}')" id="btnSyncFromSheet" 
+                  class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1 transition" 
+                  title="Đồng bộ ngược dữ liệu nhân sự đã điền từ file Google Sheet lên hệ thống">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i>
+            <span>Đồng bộ từ Sheet</span>
+          </button>
+          <button onclick="openTransferPersonnelModal('${prog.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1 transition" title="Điều chuyển nhân sự sang chương trình khác cùng ngày">
+            <i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>
+            <span>Điều chuyển</span>
+          </button>
+          <button onclick="openEditProgramModal('${prog.id}')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1"><i class="fa-regular fa-pen-to-square mr-1"></i><span>Sửa</span></button>
+          <button onclick="confirmDeleteProgram('${prog.id}', '${prog.schoolName}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1"><i class="fa-regular fa-trash-can mr-1"></i><span>Xóa</span></button>
+        ` : ""}
       `;
 
       renderProgramDetailContent(prog);
@@ -1420,25 +1763,61 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       const hasAfternoonOption = totalNeedAfternoon > 0;
       const hasEveningOption = totalNeedEvening > 0;
 
-      let rowsHtml = "";
-      regs.forEach((r, idx) => {
-        const bgClass = r.isApproved ? "bg-amber-100/70 text-slate-900 font-semibold" : "bg-white text-slate-600";
-        rowsHtml += `
-          <tr class="${bgClass} border-b border-slate-100 text-xs">
-            <td class="p-2 text-center font-bold">${idx + 1}</td>
-            <td class="p-2 font-mono font-bold">${r.user.maCTV || r.user.id || ""}</td>
-            <td class="p-2 font-bold">${r.user.hoTen || r.user.name || ""}</td>
-            <td class="p-2">${r.user.phone || r.user.sdt || ""}</td>
-            <td class="p-2 text-center"><span class="bg-white/90 px-2 py-0.5 rounded border text-[11px] font-bold">${r.shiftType}</span></td>
+      const isManager = typeof checkIsManager === 'function' && checkIsManager();
+
+      // Phân tách thành 2 nhóm: Người được chốt lịch và Người không được chốt (dư thừa)
+      const approvedRegs = regs.filter(r => r.isApproved);
+      const unapprovedRegs = regs.filter(r => !r.isApproved);
+
+      // Hàm tạo từng dòng cho 2 bảng
+      const buildRegRow = (r, idx, isGray = false) => {
+        const bgClass = isGray 
+          ? "bg-slate-100 text-slate-500 font-medium" 
+          : (r.isApproved ? "bg-amber-100/70 text-slate-900 font-semibold" : "bg-white text-slate-600");
+        const phone = r.user.phone || r.user.sdt || "";
+
+        return `
+          <tr class="${bgClass} border-b border-slate-200 text-xs hover:bg-slate-200/60 transition">
+            <td class="p-2 text-center font-bold ${isGray ? 'text-slate-400' : ''}">${idx + 1}</td>
+            <td class="p-2 font-mono font-bold ${isGray ? 'text-slate-500' : ''}">${r.user.maCTV || r.user.id || ""}</td>
+            <td class="p-2 font-bold ${isGray ? 'text-slate-700' : ''}">${r.user.hoTen || r.user.name || ""}</td>
+            <td class="p-2 ${isGray ? 'text-slate-500' : ''}">${phone}</td>
+            <td class="p-2 text-center">
+              <span class="${isGray ? 'bg-slate-200 text-slate-600 border-slate-300' : 'bg-white/90 text-slate-800 border-slate-200'} px-2 py-0.5 rounded border text-[11px] font-bold">
+                ${r.shiftType}
+              </span>
+            </td>
             <td class="p-2 text-center">${r.eveningShift === "Có" ? "🌙 Có" : "-"}</td>
-            <td class="p-2 text-center font-bold text-indigo-600">${r.user.score || 80}đ</td>
-            <td class="p-2">${r.user.major || "HDV"}</td>
+            <td class="p-2 text-center font-bold ${isGray ? 'text-slate-400' : 'text-indigo-600'}">${r.user.score || 80}đ</td>
+            <td class="p-2 ${isGray ? 'text-slate-500' : ''}">${r.user.major || "HDV"}</td>
+            ${isManager ? `
+              <td class="p-2 text-center">
+                <div class="flex items-center justify-center space-x-1.5">
+                  <!-- Nút Điều chuyển -->
+                  <button onclick="openSinglePersonnelTransfer('${p.id}', '${phone}')" 
+                          class="w-7 h-7 inline-flex items-center justify-center bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg border border-indigo-200 transition shadow-2xs" 
+                          title="Đề nghị điều chuyển nhân sự này">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-xs"></i>
+                  </button>
+                  <!-- Nút Xóa nhân sự -->
+                  <button onclick="confirmAdminRemovePersonnel('${p.id}', '${phone}', '${(r.user.hoTen || r.user.name || '').replace(/'/g, "\\'")}')" 
+                          class="w-7 h-7 inline-flex items-center justify-center bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg border border-rose-200 transition shadow-2xs" 
+                          title="Xóa nhân sự này khỏi chương trình">
+                    <i class="fa-regular fa-trash-can text-xs"></i>
+                  </button>
+                </div>
+              </td>
+            ` : ''}
           </tr>
         `;
-      });
+      };
+
+      const approvedRowsHtml = approvedRegs.map((r, idx) => buildRegRow(r, idx, false)).join('');
+      const unapprovedRowsHtml = unapprovedRegs.map((r, idx) => buildRegRow(r, idx, true)).join('');
 
       container.innerHTML = `
         <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-5">
+          <!-- TÌNH HÌNH ĐIỀU PHỐI THEO CA -->
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
             <span class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
               <i class="fa-solid fa-calculator text-aba-blue mr-1"></i>Tình hình điều phối nhân sự theo ca:
@@ -1485,6 +1864,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
             </div>
           </div>
 
+          <!-- KHUNG CHỌN CA ĐĂNG KÝ -->
           <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-wrap items-center justify-between gap-3">
             ${userReg ? `
               <div class="text-xs text-indigo-950 font-medium">
@@ -1528,10 +1908,15 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
             `}
           </div>
 
+          <!-- BẢNG 1: DANH SÁCH NHÂN SỰ CHỐT LỊCH (CHỈ HIỂN THỊ ĐÚNG CHỈ TIÊU CHỐT) -->
           <div class="space-y-2">
-            <span class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Danh sách nhân sự đăng ký (Xếp theo điểm & thời gian):
-            </span>
+            <div class="flex items-center justify-between">
+              <span class="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+                <i class="fa-solid fa-user-check text-emerald-600 mr-1.5"></i>
+                ${p.isFinalized ? 'Danh sách nhân sự đã chốt lịch:' : 'Danh sách nhân sự chính thức:'} (${approvedRegs.length}/${p.totalNeeded})
+              </span>
+              ${p.isFinalized ? '<span class="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full uppercase">ĐÃ CHỐT CA</span>' : ''}
+            </div>
             <div class="overflow-x-auto border border-slate-200 rounded-2xl custom-scrollbar">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
@@ -1544,14 +1929,51 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
                     <th class="p-2 text-center">Ca tối</th>
                     <th class="p-2 text-center">Điểm</th>
                     <th class="p-2">Nghiệp vụ</th>
+                    ${isManager ? '<th class="p-2 text-center w-20">Thao tác</th>' : ''}
                   </tr>
                 </thead>
                 <tbody>
-                  ${rowsHtml || '<tr><td colspan="8" class="p-4 text-center text-xs text-slate-400">Chưa có ai đăng ký</td></tr>'}
+                  ${approvedRowsHtml || `<tr><td colspan="${isManager ? 9 : 8}" class="p-4 text-center text-xs text-slate-400">Chưa có ai trong danh sách chốt</td></tr>`}
                 </tbody>
               </table>
             </div>
           </div>
+
+          <!-- BẢNG 2: NHÂN SỰ KHÔNG CHỐT LỊCH (BÔI MÀU XÁM NHẠT, CHỨA SỐ LƯỢNG THỪA RA) -->
+          ${unapprovedRegs.length > 0 ? `
+            <div class="space-y-2 pt-3 border-t border-slate-200">
+              <div class="flex items-center justify-between">
+                <span class="block text-xs font-bold text-slate-600 uppercase tracking-wide">
+                  <i class="fa-solid fa-user-xmark text-slate-400 mr-1.5"></i>
+                  Nhân sự không chốt lịch (dư ${unapprovedRegs.length} CTV):
+                </span>
+                <span class="text-[10px] font-bold bg-slate-200 text-slate-600 px-2.5 py-0.5 rounded-full">
+                  Xếp sau chỉ tiêu
+                </span>
+              </div>
+              <div class="overflow-x-auto border border-slate-300 rounded-2xl custom-scrollbar bg-slate-100/50">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-200 text-slate-600 font-bold border-b border-slate-300">
+                      <th class="p-2 text-center w-10">STT</th>
+                      <th class="p-2">Mã số</th>
+                      <th class="p-2">Họ và tên</th>
+                      <th class="p-2">SĐT</th>
+                      <th class="p-2 text-center">Buổi</th>
+                      <th class="p-2 text-center">Ca tối</th>
+                      <th class="p-2 text-center">Điểm</th>
+                      <th class="p-2">Nghiệp vụ</th>
+                      ${isManager ? '<th class="p-2 text-center w-12">Chuyển</th>' : ''}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${unapprovedRowsHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ` : ''}
+
         </div>
       `;
     }
@@ -1633,11 +2055,213 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       document.getElementById("createProgModal").classList.remove("hidden");
     }
 
-    function closeCreateProgModal() {
-      document.getElementById("createProgModal").classList.add("hidden");
+    // ---------------- ĐIỀU KHIỂN MODAL SỬA CHƯƠNG TRÌNH ----------------
+    function updateEditProgDateDisplay(isoDateStr) {
+      const displayInput = document.getElementById("editProgDateDisplay");
+      if (!displayInput) return;
+      if (!isoDateStr) { displayInput.value = ""; return; }
+      const parts = isoDateStr.split("-");
+      if (parts.length === 3) displayInput.value = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    // ================= GỌI ĐỒNG BỘ NGƯỢC TỪ GOOGLE SHEET =================
+    async function syncProgramFromSheet(progId) {
+      if (!checkIsManager()) {
+        showToast("Từ chối truy cập", "Chỉ quyền Quản trị và Điều hành mới có thể thực hiện đồng bộ!", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btnSyncFromSheet");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i><span>Đang đồng bộ...</span>`;
+      }
+
+      showToast("Đang đồng bộ", "Đang đọc dữ liệu từ file Google Sheet và lọc trùng lặp...", "loading");
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .syncProgramFromChildSheet(progId);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "syncProgramFromChildSheet", programId: progId })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast("Đồng bộ thành công", res.message, "success");
+
+          // Cập nhật dữ liệu chương trình trong bộ nhớ ứng dụng
+          if (res.program) {
+            const idx = state.programs.findIndex(p => p.id === progId);
+            if (idx !== -1) state.programs[idx] = res.program;
+            renderProgramDetailContent(res.program);
+          }
+
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+          renderCalendarView();
+          renderFinalizedSection();
+          if (typeof loadInitialData === "function") loadInitialData();
+        } else {
+          showToast("Lỗi đồng bộ", (res && res.message) ? res.message : "Chưa thể đồng bộ từ Sheet!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi đồng bộ từ Sheet:", err);
+        showToast("Lỗi kết nối", err.message || "Không thể kết nối đến máy chủ!", "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i><span>Đồng bộ từ Sheet</span>`;
+        }
+      }
+    }
+    function openEditProgramModal(progId) {
+      if (!checkIsManager()) {
+        showToast("Từ chối truy cập", "Chỉ quyền Quản trị và Điều hành mới có thể sửa chương trình!", "error");
+        return;
+      }
+
+      const prog = state.programs.find(p => p.id === progId);
+      if (!prog) return;
+
+      document.getElementById("editProgId").value = prog.id;
+      document.getElementById("editProgDate").value = prog.dateStr;
+      updateEditProgDateDisplay(prog.dateStr);
+
+      document.getElementById("editProgSchool").value = prog.schoolName || "";
+      document.getElementById("editProgLocation").value = prog.location || "";
+      document.getElementById("editProgArrivalTime").value = prog.arrivalTime || "";
+      document.getElementById("editProgLeaderTeam").value = prog.leaderTeam || "";
+      document.getElementById("editProgMapUrl").value = prog.mapUrl || "";
+      document.getElementById("editProgZaloUrl").value = prog.zaloUrl || "";
+
+      document.getElementById("editQuotaDay").value = prog.quotaDay || 0;
+      document.getElementById("editQuotaMorning").value = prog.quotaMorning || 0;
+      document.getElementById("editQuotaAfternoon").value = prog.quotaAfternoon || 0;
+      document.getElementById("editQuotaEvening").value = prog.quotaEvening || 0;
+
+      document.getElementById("editProgModal").classList.remove("hidden");
+    }
+
+    function closeEditProgModal() {
+      document.getElementById("editProgModal").classList.add("hidden");
+    }
+
+    async function submitEditProgram() {
+      const progId = document.getElementById("editProgId").value;
+      const dateStr = document.getElementById("editProgDate").value;
+      const school = document.getElementById("editProgSchool").value.trim();
+      const loc = document.getElementById("editProgLocation").value.trim();
+      const time = document.getElementById("editProgArrivalTime").value.trim();
+
+      if (!dateStr || !school || !loc || !time) {
+        showToast("Thiếu thông tin", "Vui lòng nhập đủ Ngày, Tên trường, Địa điểm và Giờ có mặt!", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btnSaveEditProg");
+      btn.innerText = "Đang lưu thay đổi...";
+      btn.disabled = true;
+
+      showToast("Đang cập nhật", "Đang lưu thay đổi lên Google Sheet và Drive...", "loading");
+
+      const form = {
+        id: progId,
+        schoolName: school,
+        location: loc,
+        arrivalTime: time,
+        mapUrl: document.getElementById("editProgMapUrl").value.trim(),
+        leaderTeam: document.getElementById("editProgLeaderTeam").value.trim(),
+        zaloUrl: document.getElementById("editProgZaloUrl").value.trim(),
+        dateStr: dateStr,
+        quotaDay: document.getElementById("editQuotaDay").value,
+        quotaMorning: document.getElementById("editQuotaMorning").value,
+        quotaAfternoon: document.getElementById("editQuotaAfternoon").value,
+        quotaEvening: document.getElementById("editQuotaEvening").value
+      };
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .updateProgram(form);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "updateProgram", form: form })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast("Thành công", res.message || "Đã cập nhật chương trình thành công!", "success");
+          closeEditProgModal();
+
+          // Cập nhật ngay trong bộ nhớ state cục bộ
+          const idx = state.programs.findIndex(p => p.id === progId);
+          if (idx !== -1 && res.program) {
+            state.programs[idx] = { ...state.programs[idx], ...res.program };
+          }
+
+          // Vẽ lại giao diện tương ứng
+          if (state.activeProgramId === progId) {
+            const p = state.programs.find(item => item.id === progId);
+            if (p) {
+              document.getElementById("programDetailHeaderTitle").innerText = p.schoolName;
+              document.getElementById("programDetailHeaderSub").innerText = `${p.formattedDate} - Có mặt: ${p.arrivalTime}`;
+              renderProgramDetailContent(p);
+            }
+          }
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+          renderCalendarView();
+          renderFinalizedSection();
+          if (typeof loadInitialData === 'function') loadInitialData();
+        } else {
+          showToast("Lỗi cập nhật", (res && res.message) ? res.message : "Chưa thể cập nhật thông tin!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi cập nhật chương trình:", err);
+        showToast("Lỗi kết nối", err.message || "Không thể kết nối đến máy chủ!", "error");
+      } finally {
+        btn.innerText = "Lưu Thay Đổi";
+        btn.disabled = false;
+      }
     }
 
     // ---------------- LƯU VÀ TẠO CHƯƠNG TRÌNH (TỰ ĐỘNG NHÂN BẢN DRIVE & GHI SHEET) ----------------
+    // ---------------- ĐÓNG / MỞ CỬA SỔ TẠO CHƯƠNG TRÌNH ----------------
+    function openCreateProgramModal(specificDate) {
+      const modal = document.getElementById("createProgModal");
+      const dateInput = document.getElementById("progDate");
+      const targetDate = specificDate || state.activeDayStr || new Date().toISOString().split("T")[0];
+      
+      if (dateInput) {
+        dateInput.value = targetDate;
+        if (typeof updateProgDateDisplay === "function") {
+          updateProgDateDisplay(targetDate);
+        }
+      }
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeCreateProgModal() {
+      const modal = document.getElementById("createProgModal");
+      if (modal) modal.classList.add("hidden");
+    }
     async function submitCreateProgram() {
       const dateStr = document.getElementById("progDate").value;
       const school = document.getElementById("progSchool").value.trim();
@@ -2255,8 +2879,709 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
       closeDayDetail();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  // ================= XỬ LÝ LỊCH TRÌNH CÁ NHÂN CTV =================
-    let userHistoryState = {
+  
+// ================= XỬ LÝ ĐIỀU CHUYỂN NHÂN SỰ CÙNG NGÀY & LỌC CA =================
+    let currentTransferSourceProgId = null;
+    let currentTransferSinglePhone = null; // Lưu SĐT khi bấm chuyển trực tiếp từng cá nhân
+
+    // 1. Kiểm tra ca làm có khớp với chỉ tiêu tuyển của trường đích không
+    function isShiftCompatibleWithTarget(shiftType, targetProg) {
+      if (!targetProg) return false;
+      const qDay = Number(targetProg.quotaDay || 0);
+      const qMorning = Number(targetProg.quotaMorning || 0);
+      const qAfternoon = Number(targetProg.quotaAfternoon || 0);
+      const qEvening = Number(targetProg.quotaEvening || 0);
+
+      if (shiftType === "Cả ngày") return qDay > 0;
+      if (shiftType === "Buổi sáng") return qMorning > 0;
+      if (shiftType === "Buổi chiều") return qAfternoon > 0;
+      if (shiftType === "Buổi tối") return qEvening > 0;
+
+      return false;
+    }
+
+    // ================= XÓA NHÂN SỰ KHỎI CHƯƠNG TRÌNH (QUẢN TRỊ & ĐIỀU HÀNH) =================
+    async function confirmAdminRemovePersonnel(programId, phone, userName) {
+      if (!checkIsManager()) {
+        showToast("Từ chối truy cập", "Chỉ quyền Quản trị và Điều hành mới có thể xóa nhân sự!", "error");
+        return;
+      }
+
+      const confirmMsg = `XÁC NHẬN XÓA NHÂN SỰ:\nBạn có chắc chắn muốn xóa nhân sự "${userName}" (${phone}) khỏi chương trình này?\n\nThao tác này sẽ gỡ nhân sự khỏi danh sách và cập nhật lại file Google Sheet.`;
+      if (!confirm(confirmMsg)) return;
+
+      showToast("Đang xử lý", `Đang xóa ${userName} khỏi chương trình...`, "loading");
+
+      const payload = {
+        programId: programId,
+        userPhone: phone
+      };
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .adminRemovePersonnel(payload);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "adminRemovePersonnel", data: payload })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast("Thành công", res.message || `Đã xóa ${userName} thành công!`, "success");
+
+          // Cập nhật lại bộ nhớ state cục bộ
+          const prog = state.programs.find(p => p.id === programId);
+          if (prog && prog.registrations) {
+            const cleanP = String(phone).replace(/\D/g, "");
+            prog.registrations = prog.registrations.filter(r => {
+              const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+              return !(rPhone === cleanP || (cleanP.length >= 9 && rPhone.endsWith(cleanP.slice(-9))));
+            });
+
+            // Tái duyệt chỉ tiêu chốt
+            const totalQuota = prog.totalNeeded || 1;
+            prog.registrations.forEach((r, idx) => {
+              r.isApproved = idx < totalQuota;
+            });
+
+            renderProgramDetailContent(prog);
+          }
+
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+          renderCalendarView();
+          renderFinalizedSection();
+          if (typeof loadInitialData === "function") loadInitialData();
+        } else {
+          showToast("Lỗi", (res && res.message) ? res.message : "Chưa thể xóa nhân sự!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi xóa nhân sự:", err);
+        showToast("Lỗi kết nối", err.message || "Không thể kết nối đến máy chủ!", "error");
+      }
+    }
+    // 2. Hàm khi ấn icon mũi tên 2 chiều trực tiếp ở từng dòng nhân sự
+    function openSinglePersonnelTransfer(fromProgId, userPhone) {
+      if (!checkIsManager()) {
+        showToast("Từ chối truy cập", "Chỉ quyền Quản trị và Điều hành mới có thể điều chuyển nhân sự!", "error");
+        return;
+      }
+      openTransferPersonnelModal(fromProgId, userPhone);
+    }
+
+    // 3. Mở modal điều chuyển (hỗ trợ cả chuyển nhiều người hoặc bấm trực tiếp từng cá nhân)
+    function openTransferPersonnelModal(fromProgId, preselectedPhone = null) {
+      if (!checkIsManager()) {
+        showToast("Từ chối truy cập", "Chỉ quyền Quản trị và Điều hành mới có thể điều chuyển nhân sự!", "error");
+        return;
+      }
+
+      currentTransferSourceProgId = fromProgId;
+      currentTransferSinglePhone = preselectedPhone ? String(preselectedPhone).replace(/\D/g, "") : null;
+
+      const fromProg = state.programs.find(p => p.id === fromProgId);
+      if (!fromProg) return;
+
+      const sameDayProgs = state.programs.filter(p => p.dateStr === fromProg.dateStr && p.id !== fromProgId);
+      if (sameDayProgs.length === 0) {
+        showToast("Không thể điều chuyển", `Ngày ${fromProg.formattedDate} không có chương trình nào khác để tiếp nhận nhân sự!`, "error");
+        return;
+      }
+
+      // Nếu bấm vào 1 nhân sự cụ thể: tìm ca làm của nhân sự đó
+      let userShift = null;
+      let targetUser = null;
+      if (currentTransferSinglePhone) {
+        const myReg = (fromProg.registrations || []).find(r => {
+          const ph = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+          return ph === currentTransferSinglePhone || (currentTransferSinglePhone.length >= 9 && ph.endsWith(currentTransferSinglePhone.slice(-9)));
+        });
+        if (myReg) {
+          userShift = myReg.shiftType || "Cả ngày";
+          targetUser = myReg.user;
+        }
+
+        // Kiểm tra xem trong ngày có chương trình nào nhận ca này không
+        if (userShift) {
+          const hasAnyCompatible = sameDayProgs.some(p => isShiftCompatibleWithTarget(userShift, p));
+          if (!hasAnyCompatible) {
+            showToast("Không khớp ca", `Không có chương trình nào khác trong ngày nhận ca (${userShift}) của ${targetUser ? targetUser.hoTen : 'nhân sự này'}!`, "error");
+            return;
+          }
+        }
+      }
+
+      const modal = document.getElementById("transferPersonnelModal");
+      document.getElementById("transferModalSubTitle").innerText = `Từ: ${fromProg.schoolName} (${fromProg.formattedDate})` + 
+        (targetUser ? ` • Đang chọn: ${targetUser.hoTen} (${userShift})` : '');
+
+      // Nạp danh sách chương trình đích vào dropdown
+      const select = document.getElementById("transferTargetSelect");
+      select.innerHTML = sameDayProgs.map(p => {
+        const shifts = [];
+        if (p.quotaDay > 0) shifts.push(`Cả ngày: ${p.quotaDay}`);
+        if (p.quotaMorning > 0) shifts.push(`Sáng: ${p.quotaMorning}`);
+        if (p.quotaAfternoon > 0) shifts.push(`Chiều: ${p.quotaAfternoon}`);
+        if (p.quotaEvening > 0) shifts.push(`Tối: ${p.quotaEvening}`);
+        const shiftStr = shifts.length > 0 ? ` [Tuyển: ${shifts.join(', ')}]` : '';
+        return `<option value="${p.id}">${p.schoolName}${shiftStr}</option>`;
+      }).join('');
+
+      // Tự động ưu tiên chọn chương trình khớp ca với nhân sự này
+      if (currentTransferSinglePhone && userShift) {
+        const matchedProg = sameDayProgs.find(p => isShiftCompatibleWithTarget(userShift, p));
+        if (matchedProg) {
+          select.value = matchedProg.id;
+        }
+      }
+
+      onTransferTargetChange();
+      modal.classList.remove("hidden");
+    }
+
+    function closeTransferModal() {
+      const modal = document.getElementById("transferPersonnelModal");
+      if (modal) modal.classList.add("hidden");
+      currentTransferSourceProgId = null;
+      currentTransferSinglePhone = null;
+    }
+
+    // 4. LỌC VÀ CHỈ HIỂN THỊ NHÂN SỰ PHÙ HỢP CA (ẨN HOÀN TOÀN NGƯỜI KHÔNG KHỚP)
+    function onTransferTargetChange() {
+      const targetId = document.getElementById("transferTargetSelect").value;
+      const targetProg = state.programs.find(p => p.id === targetId);
+      const fromProg = state.programs.find(p => p.id === currentTransferSourceProgId);
+      const infoBox = document.getElementById("transferTargetQuotaInfo");
+      const tbody = document.getElementById("transferPersonnelTableBody");
+      const chkAll = document.getElementById("chkSelectAllTransfer");
+
+      if (chkAll) chkAll.checked = false;
+      if (!targetProg || !fromProg) return;
+
+      // Hiển thị chỉ tiêu tuyển dụng của trường đích
+      const shifts = [];
+      if (targetProg.quotaDay > 0) shifts.push(`<b class="text-rose-600">Cả ngày (${targetProg.quotaDay})</b>`);
+      if (targetProg.quotaMorning > 0) shifts.push(`<b class="text-amber-600">Sáng (${targetProg.quotaMorning})</b>`);
+      if (targetProg.quotaAfternoon > 0) shifts.push(`<b class="text-sky-600">Chiều (${targetProg.quotaAfternoon})</b>`);
+      if (targetProg.quotaEvening > 0) shifts.push(`<b class="text-indigo-600">Tối (${targetProg.quotaEvening})</b>`);
+      infoBox.innerHTML = `Chương trình nhận đang tuyển: ${shifts.length > 0 ? shifts.join(' | ') : '<i>Không tuyển ca nào</i>'}`;
+
+      const regs = fromProg.registrations || [];
+
+      // CHỈ LỌC LẤY NHÂN SỰ CÓ CA KHỚP VỚI CHƯƠNG TRÌNH NHẬN (KHÔNG HIỂN THỊ NGƯỜI LỆCH CA)
+      const compatibleRegs = regs.filter(r => {
+        const shift = r.shiftType || "Cả ngày";
+        return isShiftCompatibleWithTarget(shift, targetProg);
+      });
+
+      if (compatibleRegs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-slate-400">
+              <i class="fa-solid fa-filter-circle-xmark text-2xl mb-1.5 block text-slate-300"></i>
+              Không có nhân sự nào có ca làm việc phù hợp với chỉ tiêu của chương trình nhận.
+            </td>
+          </tr>
+        `;
+        updateTransferCounter();
+        return;
+      }
+
+      tbody.innerHTML = compatibleRegs.map((r) => {
+        const phone = r.user.phone || r.user.sdt || "";
+        const cleanP = String(phone).replace(/\D/g, "");
+        const shift = r.shiftType || "Cả ngày";
+
+        // Tự động tích chọn nếu được bấm trực tiếp từ icon dòng nhân sự đó
+        const isPreselected = currentTransferSinglePhone && 
+          (cleanP === currentTransferSinglePhone || (currentTransferSinglePhone.length >= 9 && cleanP.endsWith(currentTransferSinglePhone.slice(-9))));
+
+        return `
+          <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+            <td class="p-2.5 text-center">
+              <input type="checkbox" name="transferPersonnelChk" value="${phone}" 
+                     ${isPreselected ? 'checked' : ''} 
+                     onchange="updateTransferCounter()" 
+                     class="accent-indigo-600 w-4 h-4 rounded cursor-pointer">
+            </td>
+            <td class="p-2.5 font-mono font-bold text-slate-700">${r.user.maCTV || r.user.id || ""}</td>
+            <td class="p-2.5 font-bold text-slate-800">${r.user.hoTen || r.user.name || ""}</td>
+            <td class="p-2.5 text-slate-600">${phone}</td>
+            <td class="p-2.5 text-center">
+              <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded text-[11px] font-bold">
+                ${shift}
+              </span>
+            </td>
+            <td class="p-2.5 text-center">
+              <span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[10px]">
+                ✓ Khớp ca
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      updateTransferCounter();
+    }
+
+    // Chọn tất cả nhân sự hợp lệ
+    function toggleSelectAllTransfer(isChecked) {
+      const chks = document.querySelectorAll('input[name="transferPersonnelChk"]:not(:disabled)');
+      chks.forEach(chk => {
+        chk.checked = isChecked;
+      });
+      updateTransferCounter();
+    }
+
+    // Cập nhật số người đã chọn
+    function updateTransferCounter() {
+      const chks = document.querySelectorAll('input[name="transferPersonnelChk"]:checked');
+      const badge = document.getElementById("transferSelectionCountBadge");
+      const btn = document.getElementById("btnSubmitTransfer");
+      const count = chks.length;
+
+      if (badge) badge.innerText = `Đã chọn: ${count} người`;
+      if (btn) btn.disabled = (count === 0);
+    }
+
+    // 4. Kích hoạt cửa sổ xác nhận điều chuyển
+    // ---------------- THAY THẾ CONFIRM WINDOWS BẰNG MODAL HIỆN ĐẠI ----------------
+    let pendingTransferPayload = null;
+
+    function triggerConfirmTransfer() {
+      const targetId = document.getElementById("transferTargetSelect").value;
+      const targetProg = state.programs.find(p => p.id === targetId);
+      const fromProg = state.programs.find(p => p.id === currentTransferSourceProgId);
+      const chks = document.querySelectorAll('input[name="transferPersonnelChk"]:checked');
+      const selectedPhones = Array.from(chks).map(c => c.value);
+
+      if (selectedPhones.length === 0) {
+        showToast("Chưa chọn", "Vui lòng tích chọn ít nhất 1 nhân sự phù hợp để điều chuyển!", "error");
+        return;
+      }
+
+      pendingTransferPayload = {
+        fromProgramId: currentTransferSourceProgId,
+        toProgramId: targetId,
+        phones: selectedPhones
+      };
+
+      // Đổ dữ liệu vào Modal xác nhận hiện đại
+      document.getElementById("confirmTransferCount").innerText = `${selectedPhones.length} nhân sự`;
+      document.getElementById("confirmTransferFromSchool").innerText = fromProg.schoolName;
+      document.getElementById("confirmTransferToSchool").innerText = targetProg.schoolName;
+
+      // Mở modal hiện đại (KHÔNG dùng confirm của trình duyệt)
+      document.getElementById("modernConfirmTransferModal").classList.remove("hidden");
+    }
+
+    function closeModernConfirmTransferModal() {
+      document.getElementById("modernConfirmTransferModal").classList.add("hidden");
+      pendingTransferPayload = null;
+    }
+
+    // Gửi đề xuất điều chuyển lên server
+    async function submitProposeTransfer() {
+      if (!pendingTransferPayload) return;
+
+      const btn = document.getElementById("btnConfirmSendTransfer");
+      btn.innerText = "Đang gửi...";
+      btn.disabled = true;
+
+      showToast("Đang gửi đề nghị", "Hệ thống đang gửi thông báo điều chuyển đến các CTV được chọn...", "loading");
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .proposeTransferPersonnel(pendingTransferPayload);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "proposeTransferPersonnel", data: pendingTransferPayload })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast("Thành công", res.message || "Đã gửi đề nghị điều chuyển!", "success");
+          closeModernConfirmTransferModal();
+          closeTransferModal();
+
+          if (typeof loadInitialData === "function") {
+            await loadInitialData();
+          }
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+        } else {
+          showToast("Lỗi", (res && res.message) ? res.message : "Chưa thể gửi đề nghị!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi gửi đề nghị điều chuyển:", err);
+        showToast("Lỗi kết nối", err.message || "Không thể kết nối máy chủ!", "error");
+      } finally {
+        btn.innerText = "Gửi Đề Nghị";
+        btn.disabled = false;
+      }
+    }
+
+    // ---------------- KIỂM TRA & HIỆN THÔNG BÁO CHO CTV KHI CÓ ĐỀ NGHỊ ĐIỀU CHUYỂN ----------------
+    function checkCTVTransferOffer() {
+      if (!state.currentUser) return;
+      const myPhone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+      if (!myPhone) return;
+
+      const myPendingOffer = (state.transferRequests || []).find(tr => 
+        tr.userPhone === myPhone && tr.status === "PENDING"
+      );
+
+      if (myPendingOffer) {
+        document.getElementById("ctvOfferRequestId").value = myPendingOffer.id;
+        document.getElementById("ctvOfferDate").innerText = myPendingOffer.formattedDate || myPendingOffer.dateStr;
+        document.getElementById("ctvOfferFromSchool").innerText = myPendingOffer.fromSchoolName;
+        document.getElementById("ctvOfferFromTime").innerText = `Có mặt: ${myPendingOffer.fromArrivalTime || 'Sáng'}`;
+        document.getElementById("ctvOfferToSchool").innerText = myPendingOffer.toSchoolName;
+        document.getElementById("ctvOfferToTime").innerText = `Có mặt: ${myPendingOffer.toArrivalTime || 'Sáng'}`;
+        document.getElementById("ctvOfferShiftInfo").innerText = `Ca làm: ${myPendingOffer.shiftType} ${myPendingOffer.eveningShift === 'Có' ? '(Kèm ca tối 🌙)' : ''}`;
+
+        document.getElementById("ctvTransferOfferModal").classList.remove("hidden");
+      }
+    }
+
+    // Xử lý CTV bấm Đồng ý hoặc Từ chối
+    async function handleCTVResponseTransfer(choice) {
+      const requestId = document.getElementById("ctvOfferRequestId").value;
+      if (!requestId) return;
+
+      const modal = document.getElementById("ctvTransferOfferModal");
+      modal.classList.add("hidden");
+
+      showToast("Đang phản hồi", choice === "ACCEPT" ? "Đang cập nhật chuyển sang chương trình mới..." : "Đang ghi nhận từ chối...", "loading");
+
+      try {
+        let res = null;
+        const payload = { requestId: requestId, choice: choice };
+
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .respondTransferRequest(payload);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "respondTransferRequest", data: payload })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast(choice === "ACCEPT" ? "Thành công" : "Đã từ chối", res.message, choice === "ACCEPT" ? "success" : "info");
+          if (typeof loadInitialData === "function") {
+            await loadInitialData();
+          }
+        } else {
+          showToast("Lỗi", (res && res.message) ? res.message : "Chưa thể gửi phản hồi!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi phản hồi điều chuyển:", err);
+      }
+    }
+
+    // 5. Gửi lệnh thực hiện điều chuyển đến máy chủ
+    async function executeTransferPersonnel(fromId, toId, phones) {
+      showToast("Đang điều chuyển", `Đang chuyển ${phones.length} nhân sự và đồng bộ cả 2 file Google Sheet...`, "loading");
+
+      const payload = {
+        fromProgramId: fromId,
+        toProgramId: toId,
+        phones: phones
+      };
+
+      try {
+        let res = null;
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          res = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .transferPersonnel(payload);
+          });
+        } else {
+          const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "transferPersonnel", data: payload })
+          });
+          const rawText = await response.text();
+          res = rawText.startsWith("{") ? JSON.parse(rawText) : { success: true };
+        }
+
+        if (res && res.success) {
+          showToast("Thành công", res.message || `Đã điều chuyển ${phones.length} nhân sự thành công!`, "success");
+          closeTransferModal();
+
+          // Tải lại dữ liệu hệ thống mới nhất
+          if (typeof loadInitialData === "function") {
+            await loadInitialData();
+          }
+
+          // Làm mới màn hình chi tiết hiện tại
+          const updatedFromProg = state.programs.find(p => p.id === fromId);
+          if (updatedFromProg && state.activeProgramId === fromId) {
+            renderProgramDetailContent(updatedFromProg);
+          }
+          if (state.activeDayStr) renderDayPrograms(state.activeDayStr);
+        } else {
+          showToast("Lỗi", (res && res.message) ? res.message : "Chưa thể điều chuyển nhân sự!", "error");
+        }
+      } catch (err) {
+        console.error("Lỗi điều chuyển:", err);
+        showToast("Lỗi kết nối", err.message || "Không thể kết nối đến máy chủ!", "error");
+      }
+    }
+
+    // ================= XỬ LÝ LỊCH TRÌNH CÁ NHÂN CTV =================
+  // ================= LOGIC QUÉT VÀ HIỆN THÔNG BÁO BẮT BUỘC ĐỌC KHI MỞ MÁY =================
+    window.pendingForcedNoticeIds = [];
+
+    function checkAndShowForcedNotices() {
+      if (!state.currentUser) return;
+      const myPhone = String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "");
+      if (!myPhone) return;
+
+      const readIds = JSON.parse(localStorage.getItem("aba_read_critical_notices") || "[]");
+      const oldSnapshot = JSON.parse(localStorage.getItem("aba_user_schedule_snapshot") || "{}");
+      
+      let unreadNotices = [];
+      let newSnapshot = {};
+
+      // 1. Quét lịch hiện tại: Lịch chốt, Lịch từ chối & Thay đổi thông tin
+      (state.programs || []).forEach(p => {
+        const myReg = (p.registrations || []).find(r => {
+          const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+          return rPhone === myPhone;
+        });
+
+        if (myReg) {
+          newSnapshot[p.id] = {
+            schoolName: p.schoolName,
+            formattedDate: p.formattedDate,
+            shiftType: myReg.shiftType,
+            isApproved: myReg.isApproved,
+            isFinalized: p.isFinalized
+          };
+
+          // A. PHÁT HIỆN THÔNG TIN CHƯƠNG TRÌNH VỪA BỊ SỬA (BẮT BUỘC ĐỌC)
+          if (p.latestUpdate && p.latestUpdate.changes && p.latestUpdate.changes.length > 0) {
+            const updateNoticeId = `${p.latestUpdate.id}_${myPhone}`;
+            if (!readIds.includes(updateNoticeId)) {
+              unreadNotices.push({
+                id: updateNoticeId,
+                type: "UPDATE",
+                title: "THAY ĐỔI THÔNG TIN CHƯƠNG TRÌNH",
+                school: p.schoolName,
+                date: p.formattedDate,
+                time: p.arrivalTime,
+                shift: myReg.shiftType,
+                changes: p.latestUpdate.changes,
+                desc: "Ban tổ chức vừa cập nhật thông tin sự kiện bạn đã đăng ký. Vui lòng kiểm tra kỹ các thay đổi bên dưới:"
+              });
+            }
+          }
+
+          // B. LỊCH ĐÃ ĐƯỢC CHỐT CHÍNH THỨC
+          if (p.isFinalized && myReg.isApproved) {
+            const noticeId = `CHOT_${p.id}_${myPhone}`;
+            if (!readIds.includes(noticeId)) {
+              unreadNotices.push({
+                id: noticeId,
+                type: "CONFIRMED",
+                title: "LỊCH LÀM ĐÃ ĐƯỢC CHỐT CHÍNH THỨC",
+                school: p.schoolName,
+                date: p.formattedDate,
+                time: p.arrivalTime,
+                shift: myReg.shiftType,
+                desc: "Bạn đã được phân công chính thức vào danh sách chạy sự kiện. Vui lòng chuẩn bị và có mặt đúng giờ quy định!"
+              });
+            }
+          }
+
+          // C. CHƯƠNG TRÌNH CHỐT NHƯNG KHÔNG NẰM TRONG DANH SÁCH DUYỆT
+          if (p.isFinalized && !myReg.isApproved) {
+            const noticeId = `ROT_${p.id}_${myPhone}`;
+            if (!readIds.includes(noticeId)) {
+              unreadNotices.push({
+                id: noticeId,
+                type: "CANCELED",
+                title: "LỊCH ĐĂNG KÝ KHÔNG ĐƯỢC DUYỆT",
+                school: p.schoolName,
+                date: p.formattedDate,
+                time: p.arrivalTime,
+                shift: myReg.shiftType,
+                desc: "Chương trình đã chốt đủ chỉ tiêu và bạn không nằm trong danh sách chính thức lần này."
+              });
+            }
+          }
+          // D. PHÁT HIỆN CTV ĐƯỢC ADMIN ĐIỀN TRỰC TIẾP TRÊN SHEET (ĐỒNG BỘ NGƯỢC)
+          if (p.adminAssignedNotices && p.adminAssignedNotices.length > 0) {
+            p.adminAssignedNotices.forEach(assignBatch => {
+              const isAssigned = (assignBatch.assignedPhones || []).some(ph => ph === myPhone || (myPhone.length >= 9 && ph.endsWith(myPhone.slice(-9))));
+              if (isAssigned) {
+                const noticeId = `${assignBatch.id}_${myPhone}`;
+                if (!readIds.includes(noticeId)) {
+                  unreadNotices.push({
+                    id: noticeId,
+                    type: "ASSIGNED",
+                    title: "BẠN ĐÃ ĐƯỢC PHÂN CÔNG VÀO CHƯƠNG TRÌNH",
+                    school: p.schoolName,
+                    date: p.formattedDate,
+                    time: p.arrivalTime,
+                    shift: myReg.shiftType,
+                    desc: "Quản trị viên đã phân công bạn trực tiếp vào danh sách nhân sự của chương trình này từ bảng tính. Vui lòng nắm rõ thời gian và chuẩn bị tham gia!"
+                  });
+                }
+              }
+            });
+          }
+        }
+      });
+      
+
+      // 2. Đối chiếu phát hiện lịch bị hủy / bị xóa
+      Object.keys(oldSnapshot).forEach(oldProgId => {
+        const oldItem = oldSnapshot[oldProgId];
+        const currentProg = (state.programs || []).find(p => p.id === oldProgId);
+
+        let isCanceled = false;
+        let reason = "";
+
+        if (!currentProg) {
+          isCanceled = true;
+          reason = "Chương trình này đã bị Quản trị viên hủy bỏ hoặc xóa khỏi hệ thống.";
+        } else {
+          const stillRegistered = (currentProg.registrations || []).some(r => {
+            const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+            return rPhone === myPhone;
+          });
+          if (!stillRegistered) {
+            isCanceled = true;
+            reason = "Ca làm của bạn tại chương trình này đã bị hủy bỏ hoặc điều chỉnh rút khỏi danh sách.";
+          }
+        }
+
+        if (isCanceled) {
+          const cancelNoticeId = `HUY_${oldProgId}_${myPhone}`;
+          if (!readIds.includes(cancelNoticeId)) {
+            unreadNotices.push({
+              id: cancelNoticeId,
+              type: "CANCELED",
+              title: "LỊCH LÀM CỦA BẠN ĐÃ BỊ HỦY",
+              school: oldItem.schoolName,
+              date: oldItem.formattedDate,
+              time: "",
+              shift: oldItem.shiftType,
+              desc: reason
+            });
+          }
+        }
+      });
+
+      localStorage.setItem("aba_user_schedule_snapshot", JSON.stringify(newSnapshot));
+
+      // 3. HIỂN THỊ CỬA SỔ CHẶN MÀN HÌNH NẾU CÓ THÔNG BÁO MỚI
+      if (unreadNotices.length > 0) {
+        window.pendingForcedNoticeIds = unreadNotices.map(n => n.id);
+        const container = document.getElementById("forcedNoticeContent");
+        
+        container.innerHTML = unreadNotices.map(n => {
+          let cardStyle = "bg-amber-50/80 border-amber-300 text-amber-900";
+          let dotColor = "bg-amber-500";
+          let badgeBorder = "border-amber-200";
+
+          // THÊM: Màu xanh ngọc lục bảo nổi bật khi được Quản lý phân công trực tiếp từ Google Sheet
+          if (n.type === "ASSIGNED") {
+            cardStyle = "bg-teal-50/80 border-teal-300 text-teal-900";
+            dotColor = "bg-teal-500";
+            badgeBorder = "border-teal-200";
+          } else if (n.type === "CONFIRMED") {
+            cardStyle = "bg-emerald-50/80 border-emerald-300 text-emerald-900";
+            dotColor = "bg-emerald-500";
+            badgeBorder = "border-emerald-200";
+          } else if (n.type === "CANCELED") {
+            cardStyle = "bg-rose-50/80 border-rose-300 text-rose-900";
+            dotColor = "bg-rose-500";
+            badgeBorder = "border-rose-200";
+          }
+
+          let changesListHtml = "";
+          if (n.changes && n.changes.length > 0) {
+            changesListHtml = `
+              <div class="mt-2 p-2 bg-amber-100/60 rounded-xl border border-amber-200 space-y-1">
+                <span class="block text-[10px] font-black uppercase tracking-wider text-amber-900">Chi tiết thay đổi:</span>
+                <ul class="list-disc list-inside text-[11px] font-bold text-amber-950 space-y-0.5">
+                  ${n.changes.map(ch => `<li>${ch}</li>`).join('')}
+                </ul>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="p-3.5 rounded-2xl border-2 ${cardStyle} space-y-2">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full ${dotColor} shrink-0 animate-ping"></span>
+                <h4 class="font-extrabold text-xs uppercase tracking-tight">${n.title}</h4>
+              </div>
+              <div class="bg-white/90 p-2.5 rounded-xl border ${badgeBorder} text-xs space-y-1">
+                <p class="font-bold text-slate-800 text-sm">${n.school}</p>
+                <div class="flex flex-wrap gap-2 text-slate-600 text-[11px]">
+                  <span><i class="fa-regular fa-calendar mr-1"></i>${n.date}</span>
+                  ${n.time ? `<span><i class="fa-regular fa-clock mr-1"></i>${n.time}</span>` : ''}
+                  <span class="font-bold text-indigo-700">Ca: ${n.shift}</span>
+                </div>
+              </div>
+              <p class="text-[11px] font-medium leading-relaxed">${n.desc}</p>
+              ${changesListHtml}
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById("forcedNoticeModal").classList.remove("hidden");
+      }
+    }
+
+    // Xác nhận đã đọc thông báo bắt buộc
+    function acknowledgeForcedNotices() {
+      const readIds = JSON.parse(localStorage.getItem("aba_read_critical_notices") || "[]");
+      if (window.pendingForcedNoticeIds && window.pendingForcedNoticeIds.length > 0) {
+        window.pendingForcedNoticeIds.forEach(id => {
+          if (!readIds.includes(id)) readIds.push(id);
+        });
+        localStorage.setItem("aba_read_critical_notices", JSON.stringify(readIds));
+      }
+
+      document.getElementById("forcedNoticeModal").classList.add("hidden");
+      window.pendingForcedNoticeIds = [];
+
+      if (typeof showToast === 'function') {
+        showToast("Đã xác nhận", "Bạn đã đọc và ghi nhận toàn bộ thông báo lịch trình!", "success");
+      }
+    }  
+  let userHistoryState = {
       activeTab: 'chotLich',
       data: {
         chotLich: [],
@@ -2414,6 +3739,281 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
         `;
       }).join('');
     }
+
+    // ================= XỬ LÝ CHUÔNG THÔNG BÁO (LƯU TRẠNG THÁI ĐÃ ĐỌC VÀO BỘ NHỚ) =================
+    let notificationsList = [];
+
+    function getReadNotificationIds() {
+      try {
+        return JSON.parse(localStorage.getItem("aba_read_notifications") || "[]");
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveReadNotificationId(id) {
+      if (!id) return;
+      const readIds = getReadNotificationIds();
+      if (!readIds.includes(id)) {
+        readIds.push(id);
+        localStorage.setItem("aba_read_notifications", JSON.stringify(readIds));
+      }
+    }
+
+    function toggleNotiDropdown(e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById("notiDropdown");
+      if (!dropdown) return;
+      dropdown.classList.toggle("hidden");
+    }
+
+    document.addEventListener("click", (e) => {
+      const dropdown = document.getElementById("notiDropdown");
+      const bellBtn = document.getElementById("notiBellBtn");
+      if (dropdown && !dropdown.classList.contains("hidden")) {
+        if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
+          dropdown.classList.add("hidden");
+        }
+      }
+    });
+
+    function updateSystemNotifications() {
+      notificationsList = [];
+      const userPhone = state.currentUser ? String(state.currentUser.sdt || state.currentUser.phone || "").replace(/\D/g, "") : "";
+      const readIds = getReadNotificationIds();
+      const isManager = typeof checkIsManager === 'function' && checkIsManager();
+
+      // 1. DÀNH RIÊNG CHO QUẢN TRỊ & ĐIỀU HÀNH: THÔNG BÁO CTV XIN RÚT LỊCH
+      if (isManager) {
+        (state.adminNotices || []).forEach(an => {
+          if (an.type === "WITHDRAWAL") {
+            const notiId = `ADM_${an.id}`;
+            notificationsList.push({
+              id: notiId,
+              isRead: readIds.includes(notiId),
+              type: "WITHDRAWAL",
+              title: "CTV XIN RÚT LỊCH",
+              content: `${an.userName} (${an.userPhone}) vừa xin rút ca ${an.shiftType} tại ${an.schoolName} (${an.formattedDate}).`,
+              time: an.formattedDate,
+              icon: "fa-solid fa-user-minus text-rose-600 bg-rose-50",
+              progId: an.programId
+            });
+          }
+        });
+      }
+
+      // 2. Thông báo tin tuyển người gấp (Khẩn cấp)
+      (state.urgentNotices || []).forEach(n => {
+        const notiId = `URGENT_${n.id || (n.location + '_' + n.time)}`;
+        notificationsList.push({
+          id: notiId,
+          isRead: readIds.includes(notiId),
+          type: "URGENT",
+          title: "TUYỂN GẤP CTV",
+          content: `${n.location} lúc ${n.time} cần ${n.quota} CTV. ${n.salary ? `Lương: ${n.salary}` : ''}`,
+          time: "Ghim ưu tiên",
+          icon: "fa-solid fa-triangle-exclamation text-rose-500 bg-rose-50"
+        });
+      });
+
+      // 3. Nhắc nhở lịch cá nhân & Thông báo thay đổi thông tin
+      if (userPhone) {
+        (state.programs || []).forEach(p => {
+          const myReg = (p.registrations || []).find(r => {
+            const rPhone = String(r.user.phone || r.user.sdt || "").replace(/\D/g, "");
+            return rPhone === userPhone;
+          });
+
+          if (myReg) {
+            // Thông báo thay đổi thông tin
+            if (p.latestUpdate && p.latestUpdate.changes && p.latestUpdate.changes.length > 0) {
+              const updateNotiId = `${p.latestUpdate.id}_${userPhone}`;
+              notificationsList.push({
+                id: updateNotiId,
+                isRead: readIds.includes(updateNotiId),
+                type: "UPDATE",
+                title: `THAY ĐỔI THÔNG TIN: ${p.schoolName}`,
+                content: p.latestUpdate.changes.join("; "),
+                time: p.formattedDate,
+                icon: "fa-solid fa-pen-to-square text-amber-600 bg-amber-50",
+                progId: p.id
+              });
+            }
+
+            // Thông báo lịch đã được chốt
+            if (p.isFinalized && myReg.isApproved) {
+              const notiId = `FINALIZED_${p.id}_${userPhone}`;
+              notificationsList.push({
+                id: notiId,
+                isRead: readIds.includes(notiId),
+                type: "FINALIZED",
+                title: "LỊCH LÀM ĐÃ ĐƯỢC CHỐT",
+                content: `Bạn đã được chốt ca ${myReg.shiftType} tại ${p.schoolName} (${p.formattedDate} - ${p.arrivalTime}).`,
+                time: p.formattedDate,
+                icon: "fa-solid fa-calendar-check text-emerald-600 bg-emerald-50",
+                progId: p.id
+              });
+            }
+            // Thông báo được thêm trực tiếp từ file Google Sheet
+            if (p.adminAssignedNotices && p.adminAssignedNotices.length > 0) {
+              p.adminAssignedNotices.forEach(assignBatch => {
+                const isAssigned = (assignBatch.assignedPhones || []).some(ph => ph === userPhone || (userPhone.length >= 9 && ph.endsWith(userPhone.slice(-9))));
+                if (isAssigned) {
+                  const assignNotiId = `${assignBatch.id}_${userPhone}`;
+                  notificationsList.push({
+                    id: assignNotiId,
+                    isRead: readIds.includes(assignNotiId),
+                    type: "ASSIGNED",
+                    title: "BẠN ĐƯỢC PHÂN CÔNG THAM GIA",
+                    content: `Bạn được Quản lý phân công vào chương trình ${p.schoolName} (${p.formattedDate} - ${p.arrivalTime}).`,
+                    time: p.formattedDate,
+                    icon: "fa-solid fa-user-check text-teal-600 bg-teal-50",
+                    progId: p.id
+                  });
+                }
+              });
+            }
+          }
+        });
+      }
+
+      renderNotificationDropdown();
+    }
+
+    // Xử lý khi bấm trực tiếp vào 1 thông báo
+    function handleNotificationClick(notiId, progId) {
+      saveReadNotificationId(notiId);
+      updateSystemNotifications();
+      if (progId && typeof openProgramDetail === "function") {
+        openProgramDetail(progId);
+      }
+      const dropdown = document.getElementById("notiDropdown");
+      if (dropdown) dropdown.classList.add("hidden");
+    }
+
+    function renderNotificationDropdown() {
+      const container = document.getElementById("notiListContainer");
+      const badge = document.getElementById("notiBadge");
+      const countText = document.getElementById("notiCountText");
+      if (!container) return;
+
+      const unreadCount = notificationsList.filter(n => !n.isRead).length;
+
+      // CHỈ HIỆN CHẤM ĐỎ KHI THỰC SỰ CÒN TIN CHƯA ĐỌC
+      if (badge) {
+        if (unreadCount > 0) {
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+
+      if (countText) {
+        countText.innerText = unreadCount > 0 ? `${unreadCount} mới` : "0 mới";
+      }
+
+      if (notificationsList.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Không có thông báo mới</div>`;
+        return;
+      }
+
+      container.innerHTML = notificationsList.map(n => `
+        <div onclick="handleNotificationClick('${n.id}', '${n.progId || ''}')" 
+             class="p-2.5 rounded-2xl transition border flex items-start space-x-2.5 cursor-pointer ${n.isRead ? 'bg-white opacity-50 border-slate-100 hover:opacity-100' : 'bg-blue-50/70 border-blue-200 hover:bg-blue-50'}">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm ${n.icon}">
+            <i class="${n.icon.split(' ')[0]} ${n.icon.split(' ')[1]}"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5 truncate">
+                ${!n.isRead ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>' : ''}
+                <span class="font-extrabold text-[11px] text-slate-800 truncate">${n.title}</span>
+              </div>
+              <span class="text-[9.5px] font-semibold text-slate-400 shrink-0 ml-1">${n.time}</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">${n.content}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Đánh dấu đã đọc tất cả
+    function markAllNotisAsRead() {
+      notificationsList.forEach(n => {
+        saveReadNotificationId(n.id);
+      });
+      updateSystemNotifications();
+      const dropdown = document.getElementById("notiDropdown");
+      if (dropdown) dropdown.classList.add("hidden");
+    }
+  // ---------------- LẮNG NGHE PHÍM ESC ĐỂ THOÁT CỬA SỔ & QUAY LẠI GIAO DIỆN TRƯỚC ----------------
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" || e.keyCode === 27) {
+        const isVisible = (id) => {
+          const el = document.getElementById(id);
+          return el && !el.classList.contains("hidden");
+        };
+
+        // 1. Chặn phím Esc nếu đang hiển thị thông báo quan trọng bắt buộc đọc
+        if (isVisible("forcedNoticeModal")) return;
+
+        // 2. Đóng hộp thông báo nổi của chuông nếu đang mở
+        if (isVisible("notiDropdown")) {
+          document.getElementById("notiDropdown").classList.add("hidden");
+          return;
+        }
+
+        // 3. Đóng các Modal nhập liệu / thao tác nếu đang mở
+        if (isVisible("createProgModal")) {
+          closeCreateProgModal();
+          return;
+        }
+        if (isVisible("transferPersonnelModal")) {
+          closeTransferModal();
+          return;
+        }
+        if (isVisible("editProgModal")) {
+          closeEditProgModal();
+          return;
+        }
+        if (isVisible("adminModal")) {
+          closeAdminModal();
+          return;
+        }
+        if (isVisible("adminPinAuthModal")) {
+          closeAdminPinModal();
+          return;
+        }
+        if (isVisible("switchAccountModal")) {
+          closeSwitchAccountModal();
+          return;
+        }
+        if (isVisible("conflictModal")) {
+          closeConflictModal();
+          return;
+        }
+        if (isVisible("userHistoryModal")) {
+          closeUserHistoryModal();
+          return;
+        }
+        if (isVisible("loginModal") && state.currentUser) {
+          closeLoginModal();
+          return;
+        }
+
+        // 4. Nếu đang ở màn hình Đăng ký sự kiện chi tiết -> Quay lại màn hình thông tin ngày trước đó
+        if (isVisible("programDetailView")) {
+          closeProgramDetail();
+          return;
+        }
+
+        // 5. Nếu đang ở màn hình Ngày -> Quay lại bảng Lịch tổng (Tuần / Tháng)
+        if (isVisible("dayDetailView")) {
+          closeDayDetail();
+          return;
+        }
+      }
+    });
   </script>
   <!-- KHUNG THÔNG BÁO HIỆN ĐẠI (THAY THẾ TRIỆT ĐỂ ALERT) -->
   <div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
@@ -2474,6 +4074,210 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFRuhyRl4NrPLyJMnSE
         <span>* Sắp xếp tự động từ ngày gần nhất đến xa nhất</span>
         <button onclick="closeUserHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
           Đóng
+        </button>
+      </div>
+
+    </div>
+  </div>
+  <!-- ==================== CỬA SỔ THÔNG BÁO QUAN TRỌNG BẮT BUỘC ĐỌC ==================== -->
+  <div id="forcedNoticeModal" class="fixed inset-0 bg-slate-900/85 z-[100] flex items-center justify-center p-4 backdrop-blur-sm hidden select-none">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-200">
+      
+      <!-- Tiêu đề cửa sổ (Không có nút X đóng, buộc phải đọc) -->
+      <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 shrink-0">
+        <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl shrink-0 shadow-xs">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">Quan trọng • Bắt buộc đọc</span>
+          <h3 class="text-base font-extrabold text-slate-900 mt-0.5">THÔNG BÁO</h3>
+        </div>
+      </div>
+
+      <!-- Khung danh sách các thông báo cần đọc (Tự cuộn dọc nếu nhiều) -->
+      <div id="forcedNoticeContent" class="my-4 space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1"></div>
+
+      <!-- Nút xác nhận duy nhất để mở khóa màn hình -->
+      <div class="pt-3 border-t border-slate-100 shrink-0">
+        <button onclick="acknowledgeForcedNotices()" class="w-full py-3 bg-aba-blue hover:bg-aba-dark text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-check-double"></i>
+          <span>Tôi đã đọc và nắm rõ thông tin</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+  <!-- ==================== MODAL ĐIỀU CHUYỂN NHÂN SỰ CÙNG NGÀY ==================== -->
+  <div id="transferPersonnelModal" class="fixed inset-0 bg-slate-900/80 z-[75] flex items-center justify-center p-3 sm:p-4 backdrop-blur-xs hidden select-none">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
+      
+      <!-- Header Modal -->
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-200 shrink-0">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0 border border-indigo-100">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-slate-800">Điều Chuyển Nhân Sự</h3>
+            <p id="transferModalSubTitle" class="text-xs text-slate-500 font-medium"></p>
+          </div>
+        </div>
+        <button onclick="closeTransferModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Bước 1: Chọn trường tiếp nhận -->
+      <div class="pt-4 pb-3 space-y-1.5 shrink-0">
+        <label class="block text-xs font-bold text-slate-700">
+          <span class="w-2 h-2 rounded-full bg-indigo-600 inline-block mr-1"></span>
+          Chọn chương trình tiếp nhận (cùng ngày):
+        </label>
+        <select id="transferTargetSelect" onchange="onTransferTargetChange()" 
+                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </select>
+        <div id="transferTargetQuotaInfo" class="text-[11px] text-slate-500 font-medium px-1"></div>
+      </div>
+
+      <!-- Bước 2: Danh sách nhân sự với ô vuông tích chọn và kiểm tra ca -->
+      <div class="flex-1 flex flex-col min-h-0 space-y-2 pt-2 border-t border-slate-100">
+        <div class="flex items-center justify-between text-xs px-1">
+          <span class="font-bold text-slate-700">Chọn nhân sự điều chuyển:</span>
+          <span id="transferSelectionCountBadge" class="text-indigo-600 font-extrabold text-[11px]">Đã chọn: 0 người</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto border border-slate-200 rounded-2xl custom-scrollbar">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200 text-slate-600 font-bold">
+              <tr>
+                <th class="p-2.5 text-center w-10">
+                  <input type="checkbox" id="chkSelectAllTransfer" onchange="toggleSelectAllTransfer(this.checked)" class="accent-indigo-600 w-4 h-4 rounded cursor-pointer">
+                </th>
+                <th class="p-2.5">Mã số</th>
+                <th class="p-2.5">Họ và tên</th>
+                <th class="p-2.5">SĐT</th>
+                <th class="p-2.5 text-center">Buổi ĐK</th>
+                <th class="p-2.5 text-center">Tình trạng lọc ca</th>
+              </tr>
+            </thead>
+            <tbody id="transferPersonnelTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer: Nút Xác nhận điều chuyển -->
+      <div class="pt-4 border-t border-slate-200 flex items-center justify-between shrink-0 gap-2">
+        <span class="text-[11px] text-slate-400 italic">* Chỉ cho phép tích chọn nhân sự có thời gian đăng ký phù hợp với chương trình nhận</span>
+        <div class="flex space-x-2">
+          <button onclick="closeTransferModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+            Hủy
+          </button>
+          <button onclick="triggerConfirmTransfer()" id="btnSubmitTransfer" 
+                  class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed">
+            Xác nhận điều chuyển
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- ==================== 1. MODAL XÁC NHẬN ĐIỀU CHUYỂN HIỆN ĐẠI (THAY THẾ CONFIRM WINDOWS) ==================== -->
+  <div id="modernConfirmTransferModal" class="fixed inset-0 bg-slate-900/80 z-[80] flex items-center justify-center p-4 backdrop-blur-xs hidden select-none">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0 border border-indigo-100">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">Xác nhận điều phối</span>
+          <h3 class="text-base font-extrabold text-slate-900 mt-0.5">Đề Nghị Điều Chuyển Nhân Sự</h3>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Số lượng điều chuyển:</span>
+          <span id="confirmTransferCount" class="font-extrabold text-indigo-700 text-sm">0 nhân sự</span>
+        </div>
+        <div class="space-y-1 pt-1 border-t border-slate-200">
+          <div class="flex items-start space-x-2">
+            <span class="text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded font-bold text-[10px] shrink-0">GỐC</span>
+            <span id="confirmTransferFromSchool" class="font-bold text-slate-800"></span>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded font-bold text-[10px] shrink-0">ĐÍCH</span>
+            <span id="confirmTransferToSchool" class="font-bold text-slate-800"></span>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-slate-500 leading-relaxed italic">
+        * Hệ thống sẽ gửi thông báo đến từng CTV được chọn. Nhân sự bấm "Đồng ý" mới chính thức được chuyển sang chương trình mới.
+      </p>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="closeModernConfirmTransferModal()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+          Hủy bỏ
+        </button>
+        <button onclick="submitProposeTransfer()" id="btnConfirmSendTransfer" class="py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition">
+          Gửi Đề Nghị
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. CỬA SỔ HIỆN ĐẠI CHO CỘNG TÁC VIÊN: ĐỒNG Ý / TỪ CHỐI ==================== -->
+  <div id="ctvTransferOfferModal" class="fixed inset-0 bg-slate-900/85 z-[110] flex items-center justify-center p-4 backdrop-blur-sm hidden select-none">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4 animate-in fade-in zoom-in duration-200">
+      
+      <div class="flex items-center space-x-3 pb-3 border-b border-slate-100">
+        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0 shadow-xs">
+          <i class="fa-solid fa-bell-concierge"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">THÔNG BÁO</span>
+          <h3 class="text-base font-extrabold text-slate-900 mt-0.5">Đề Nghị Điều Chuyển Ca Làm</h3>
+        </div>
+      </div>
+
+      <input type="hidden" id="ctvOfferRequestId">
+
+      <div class="space-y-2.5 text-xs">
+        <p class="text-slate-600 leading-relaxed">
+          Bộ phận nhân sự đề nghị điều chuyển ca làm việc của bạn trong ngày <strong id="ctvOfferDate" class="text-slate-800"></strong> sang sự kiện mới để cân đối nhân sự:
+        </p>
+
+        <!-- Thẻ so sánh Chương trình ban đầu (Thẻ vàng) và Chương trình mới (Thẻ xanh) -->
+        <div class="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md uppercase">Chương trình ban đầu (Cũ)</span>
+            <span id="ctvOfferFromTime" class="text-[11px] text-slate-500 font-semibold"></span>
+          </div>
+          <h4 id="ctvOfferFromSchool" class="font-bold text-slate-800 text-sm"></h4>
+        </div>
+
+        <div class="flex justify-center text-slate-400">
+          <i class="fa-solid fa-arrow-down text-base"></i>
+        </div>
+
+        <div class="p-3 bg-emerald-50/80 border border-emerald-300 rounded-2xl space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-md uppercase">Chương trình tiếp nhận (Mới)</span>
+            <span id="ctvOfferToTime" class="text-[11px] text-slate-500 font-semibold"></span>
+          </div>
+          <h4 id="ctvOfferToSchool" class="font-bold text-emerald-900 text-sm"></h4>
+          <p id="ctvOfferShiftInfo" class="text-[11px] text-emerald-700 font-semibold"></p>
+        </div>
+      </div>
+
+      <!-- 2 Nút Lựa chọn: Từ chối hoặc Đồng ý -->
+      <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+        <button onclick="handleCTVResponseTransfer('REJECT')" class="py-3 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition">
+          ✕ Từ chối chuyển
+        </button>
+        <button onclick="handleCTVResponseTransfer('ACCEPT')" class="py-3 bg-aba-blue hover:bg-aba-dark text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-1.5">
+          <i class="fa-solid fa-check"></i>
+          <span>Đồng ý chuyển</span>
         </button>
       </div>
 
